@@ -14,3 +14,8 @@ perm_ints = {
 #  recommended that it stays one higher than the "global_admin" permission
 #  integer.
 max_permission_int = 5
+
+
+
+# webhook base URLS, used in the logging systems
+webhook_base = "https://discordapp.com/api/webhooks/"
