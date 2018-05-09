@@ -1,3 +1,4 @@
+constants.yaml
 data/guilds/*.json
 
 *.pyc
