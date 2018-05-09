@@ -1,0 +1,26 @@
+{
+  "cmd lvls": {},
+  "tags": {
+    "options": {
+      "log_channel": null,
+      "allow_global": true,
+      "logging": false,
+      "is_default": false
+    },
+    "list": {}
+  },
+  "permissions": {
+    "admin": {
+      "names": [
+        "Admin"
+      ],
+      "IDs": []
+    },
+    "mod": {
+      "names": [
+        "Mod"
+      ],
+      "IDs": []
+    }
+  }
+}

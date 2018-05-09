@@ -1,0 +1,1 @@
+python3 -m disco.cli --config constants.yaml --run-bot --log-level INFO

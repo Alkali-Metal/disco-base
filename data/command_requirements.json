@@ -1,0 +1,141 @@
+{
+  "MiscCommands": {
+    "test": {
+      "DMs": true,
+      "user": [],
+      "bot": []
+    }
+  },
+  "GlobalAdministration": {
+    "plugin": {
+      "enable": {
+        "DMs": true,
+        "user": [],
+        "bot": []
+      },
+      "disable": {
+        "DMs": true,
+        "user": [],
+        "bot": []
+      },
+      "list": {
+        "DMs": true,
+        "user": [],
+        "bot": []
+      }
+    },
+    "guild": {
+      "enable": {
+        "DMs": true,
+        "user": [],
+        "bot": []
+      },
+      "disable": {
+        "DMs": true,
+        "user": [],
+        "bot": []
+      },
+      "list": {
+        "DMs": true,
+        "user": [],
+        "bot": []
+      }
+    }
+  },
+  "AdminPlugin": {
+    "ban": {
+      "DMs": false,
+      "user": [],
+      "bot": [
+        4
+      ]
+    },
+    "forceban": {
+      "DMs": false,
+      "user": [],
+      "bot": [
+        4
+      ]
+    }
+  },
+  "CustomCommands": {
+    "tag": {
+      "add": {
+        "DMs": false,
+        "bot": [],
+        "user": []
+      },
+      "remove": {
+        "DMs": false,
+        "bot": [],
+        "user": []
+      },
+      "modify": {
+        "DMs": false,
+        "bot": [],
+        "user": []
+      },
+      "list": {
+        "DMs": false,
+        "bot": [],
+        "user": []
+      }
+    }
+  },
+  "ReloadCommand": {
+    "bot": {
+      "reload": {
+        "DMs": true,
+        "user": [],
+        "bot": []
+      }
+    }
+  },
+  "GuildLogging": {
+    "log": {
+      "add": {
+        "DMs": false,
+        "user": [
+          16
+        ],
+        "bot": [
+          536870912,
+          128
+        ]
+      },
+      "remove": {
+        "DMs": false,
+        "user": [
+          16
+        ],
+        "bot": [
+          536870912,
+          128
+        ]
+      }
+    }
+  },
+  "UtilCommands": {
+    "util": {
+      "level": {
+        "bot": [],
+        "user": [],
+        "DMs": true
+      },
+      "roles": {
+        "bot": [],
+        "user": [],
+        "DMs": false
+      }
+    }
+  },
+  "ConfigEditor": {
+    "config": {
+      "edit": {
+        "bot": [],
+        "user": [],
+        "DMs": false
+      }
+    }
+  }
+}
