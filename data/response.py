@@ -9,8 +9,8 @@ class Parser:
     not_DM_enabled = redtick + ": This command cannot be ran in a direct message."
     not_plugin_enabled = redtick + ": This server does not have the `{}` plugin enabled. Contact a global administrator if you believe this to be an error."
     added_plugin = greentick + ": Added plugin `{}` to guild `{}`."
-    bot_perm_missing = redtick + ": Command couldn't be executed due to missing permission(s). (`{}`)"
-    user_perm_missing = redtick + ": Command couldn't be executed due to you missing Discord related permission(s). (`{}`)"
+    bot_perm_missing = redtick + ": Command couldn't be executed due to missing permission(s). Run `{}info {}` to see exactly what permissions the bot and you need to run the command."
+    user_perm_missing = redtick + ": Command couldn't be executed due to you missing Discord related permission(s). Run `{}info {}` to see exactly what permissions the bot and you need to run the command."
     unconfigured = "This server has not been configured for this plugin yet."
     generic_error = redtick + ": Something went wrong. Try again later."
     name_error = "There are {} with that name!"
@@ -54,18 +54,22 @@ class GlobalAdmin:
     reloaded_plugins = "The following plugins have been reloaded: ```\n{}\n```"
     invalid_plugins = "The following plugins are invalid: ```\n{}\n```"
     didnt_reload_plugins = "The following plugins cannot be reloaded: ```\n{}\n```"
+    reload_too_long = "The response was too long, but the task complete"
 
 
 
 class Admin:
     invalid_perms = Invalid.permissions
+    invalid_arg = Invalid.argument
     cant_messages = "Cannot manage messages. Make sure I have the `Manage Messages` permission."
     channel_purged = "Channel (`{}`) has been purged."
     ban_error = Parser.generic_error
     no_ban_self = redtick + ": You cannot ban yourself"
     already_banned = redtick + ": That user is already banned."
     ban_success = greentick + ": {} (`{}`) has been banned with reason: `{}`"
+    mass_ban = greentick + ": From a total of `{}` users given.\n\nBanned: `{}`\nAlready Banned: `{}`"
     ban_success_nameless = greentick + ": User `{}` has been banned with reason: `{}`"
+    self_cleaned = greentick + ": Cleaned `{}` messages."
 
 
 
