@@ -1,3 +1,4 @@
+# BOT IMPORTS:
 from data.types.discord.permissions import Bot, User, Misc
 from data.response import Parser, Invalid, GlobalAdmin
 from data.types.bot.plugin_config import PluginConfig
@@ -6,35 +7,11 @@ from data.types.bot.blacklist import Blacklist
 from data.types.bot.permissions import Perms
 from data.types.bot.config import Config
 
+# DISCO IMPORTS:
 from disco.bot import Plugin
 
+# MISC MODULE IMPORTS:
 from time import sleep
-
-
-
-enabled_bypass = [
-    "GlobalAdministration",
-    "ReloadCommand",
-    "ConfigEditor"
-]
-
-force_default = [
-    "GlobalAdministration",
-    "ReloadCommand"
-]
-
-cannot_be_enabled = [
-    "GlobalAdministration",
-    "MessageParser",
-    "AdminLogging",
-    "ReloadCommand",
-    "ConfigEditor"
-]
-
-cannot_reload = [
-    "ReloadCommand",
-    "MessageParser"
-]
 
 
 
@@ -59,8 +36,14 @@ def triggers_commands(self, event):
     config = Config.load()
 
     prefix = config["bot"]["commands_prefix"]
+
+    # Ensure the message starts with the prefix
     if event.message.content.startswith(prefix):
+
+        # See if we are needing mentions for commands
         require_mention = config["bot"]["commands_require_mention"]
+        
+        # See if the user supplied command mention rules
         try:
             mention_rules = config["bot"]["commands_mention_rules"]
         except KeyError:
@@ -82,55 +65,21 @@ def triggers_commands(self, event):
 
 
 
-def check_permissions(APIClient, event, permissions):
-
-    # BOT PERMISSIONS
-    if len(permissions["bot"]):
-
-        # Ensure the bot has full permissions needed
-        for permission in permissions["bot"]:
-
-            # Ensure bot actually has permission
-            bot_perms = event.message.guild.get_member()
-            if Bot.has_perm(APIClient, event.message.guild, permission):
-                continue
-            else:
-
-                # Acknowledge user then prevent further action
-                event.message.reply(
-                    Parser.bot_perm_missing.format(
-                        Misc.convert(permission)
-                    )
-                )
-                return False
-    
-
-    # USER PERMISSIONS
-    if len(permissions["user"]):
-
-        # Ensure the user has full permissions
-        for permission in permissions["user"]:
-
-            # Ensure user actually has the permission
-            if User.has_perm(event.member, permission):
-                continue
-            else:
-
-                # Acknowledge user then prevent further action
-                event.message.reply(
-                    Parser.user_perm_missing.format(
-                        Misc.convert(permission)
-                    )
-                )
-                return False
-    
-    # It's made it this far, we should probably allow it to actually continue
-    return True
-
-
 
 
 class MessageParser(Plugin):
+
+
+    #=======================================#
+    # PLUGIN INFORMATION FOR PARSER:
+    can_reload = False
+    force_default = False
+    bypass_enabled = False
+    can_be_enabled = False
+    plugin_version = 4.1
+    config_settings = None
+    commands_config = {}
+    #=======================================#
 
 
     def message_handling(self, event, is_edited=False):
@@ -168,22 +117,26 @@ class MessageParser(Plugin):
             if not hasattr(event.message.content, "startswith"):
                 return
 
+
+
 #=============================================================================#
 # EDITED MESSAGE CHECKS
 
+            # Ensure that config allows edited message commands
+            if config["bot"]["commands_allow_edit"]:
 
-            # Ensure that we are checking an edited message
-            if is_edited:
+                # Ensure that we are checking an edited message
+                if is_edited:
 
-                # Ensure message is the most recent in channel
-                msg_list = self.client.api.channels_messages_list(
-                    event.message.channel_id,
-                    limit=1
-                )
+                    # Ensure message is the most recent in channel
+                    msg_list = self.client.api.channels_messages_list(
+                        event.message.channel_id,
+                        limit=1
+                    )
 
-                # Ensure message is most recent
-                if msg_list[0].id != event.message.id:
-                    return
+                    # Ensure message is most recent
+                    if msg_list[0].id != event.message.id:
+                        return
 
 
 #=============================================================================#
@@ -224,13 +177,14 @@ class MessageParser(Plugin):
 
 
             # commands are indeed triggered:
-            cmd_name = commands[0][0].name
-            cmd_group = commands[0][0].group
-            plg_name = commands[0][0].plugin.name
+            command = commands[0][0]
+            plugin = command.plugin
 
-
-            # Load the data that we will need for the command checking
-            reqs = PluginConfig.load("command_requirements")
+            cmd_config = plugin.commands_config[str(command.group)][command.name]
+            allow_DMs = cmd_config["allow_DMs"]
+            bot_perms = cmd_config["bot_perms"]
+            user_perms = cmd_config["user_perms"]
+            default_level = cmd_config["default_level"]
 
 
             #-----------------------------------------------------------------#
@@ -240,7 +194,7 @@ class MessageParser(Plugin):
 
 
             # message in guild
-            if guild != None:
+            if guild:
 
                 guild_list = PluginConfig.load("guild_list")
 
@@ -252,7 +206,7 @@ class MessageParser(Plugin):
 
 
                 # Check if plugin bypasses the enabled checks.
-                if plg_name not in enabled_bypass:
+                if not plugin.bypass_enabled:
 
 
                     # ensure guild is enabled
@@ -261,9 +215,9 @@ class MessageParser(Plugin):
 
 
                     # ensure guild has the plugin enabled
-                    if plg_name not in guild_list[str(guild.id)]:
+                    if plugin.name not in guild_list[str(guild.id)]:
                         return event.message.reply(
-                            Parser.not_plugin_enabled.format(plg_name)
+                            Parser.not_plugin_enabled.format(plugin.name)
                         )
 
 
@@ -274,47 +228,41 @@ class MessageParser(Plugin):
                 #  to the default config.
 
                 # Check if we're forcing default
-                if plg_name not in force_default:
+                if not plugin.force_default:
 
                     # get command permission level
                     try:
+
                         # load guild's configuration
                         config = GuildConfig.load(event.message.guild.id)
 
+
+                        plg_data = config["cmd_lvls"][plugin.name]
+
+
                         # command with group
-                        if cmd_group != None:
-                            grp_data = config["cmd lvls"][plg_name][cmd_group]
-                            cmd_level = grp_data[cmd_name]
+                        if command.group:
+                            cmd_level = plg_data[command.group][command.name]
+                            
+
 
                         # command no group
                         else:
-                            cmd_level = config["cmd lvls"][plg_name][cmd_name]
+
+                            cmd_level = plg_data[command.name]
+                            bypass_user_perms = config["permissions"]["bypass_user_perms"]
 
 
-                    # guild hasn't changed the permission level from default
+                    # something went wrong, resort to default config
                     except KeyError:
-                        config = GuildConfig.load("default")
+                        cmd_level = default_level
+                        bypass_user_perms = cmd_config["bypass_user_perms"]
 
-                        # command with group
-                        if cmd_group != None:
-                            grp_data = config["cmd lvls"][plg_name][cmd_group]
-                            cmd_level = grp_data[cmd_name]
-
-                        # command no group
-                        else:
-                            cmd_level = config["cmd lvls"][plg_name][cmd_name]
 
                 # Loading the default config file
                 else:
-                    config = GuildConfig.load("default")
-
-                    # command with group
-                    if cmd_group != None:
-                        grp_data = config["cmd lvls"][plg_name][cmd_group]
-                        cmd_level = grp_data[cmd_name]
-                    # command no group
-                    else:
-                        cmd_level = config["cmd lvls"][plg_name][cmd_name]
+                    cmd_level = default_level
+                    bypass_user_perms = cmd_config["bypass_user_perms"]
 
 
                 #-------------------------------------------------------------#
@@ -331,85 +279,94 @@ class MessageParser(Plugin):
                 # Checking to see if the bot/user have all the mandatory
                 #  permissions
 
+                # Ensure we aren't ignoring user_perms
+                if not bypass_user_perms:
 
-                # check to see if the command has a group
-                if cmd_group != None:
+                    # Ensure user has full permissions
+                    if not event.message.channel.get_permissions(
+                        event.message.member
+                    ).can(user_perms):
+
+                        # Ensure there is a command group
+                        if command.group:
+                            cmd = command.group + " " + command.name
+                        else:
+                            cmd = command.name
+
+                        return event.msg.reply(
+                            Parser.bot_perm_missing.format(
+                                Config["bot"]["commands_prefix"],
+                                cmd
+                            )
+                        )
 
 
-                    # Get boolean value of whether or not they have permissions
-                    has_permissions = check_permissions(
-                        self.client.api,
-                        event,
-                        reqs[plg_name][cmd_group][cmd_name]
+                # Ensure bot has all permissions needed
+                if not event.message.channel.get_permissions(
+                    self.state.me
+                ).can(bot_perms):
+
+                    # Ensure there is a command group
+                    if command.group:
+                        cmd = command.group + " " + command.name
+                    else:
+                       cmd = command.name
+
+                    return event.msg.reply(
+                        Parser.bot_perm_missing.format(
+                            Config["bot"]["commands_prefix"],
+                            cmd
+                        )
                     )
-
-
-                    # Error if they don't have the valid permissions
-                    if not has_permissions:
-                        return
-
-
-                # command has no group
-                else:
-
-                    # Get boolean value of whether or not they have permissions
-                    has_permissions = check_permissions(
-                        self.client.api,
-                        event,
-                        reqs[plg_name][cmd_name]
-                    )
-
-
-                    # Error if they don't have the valid permissions
-                    if not has_permissions:
-                        return
 
 
             # command ran in DMs
+            elif allow_DMs:
+
+                # Ensure we aren't ignoring user_perms
+                if not bypass_user_perms:
+
+                    # Ensure user has full permissions
+                    if not event.message.channel.get_permissions(
+                        event.message.member
+                    ).can(user_perms):
+
+                        # Ensure there is a command group
+                        if command.group:
+                            cmd = command.group + " " + command.name
+                        else:
+                            cmd = command.name
+
+                        return event.msg.reply(
+                            Parser.bot_perm_missing.format(
+                                Config["bot"]["commands_prefix"],
+                                cmd
+                            )
+                        )
+
+
+                # Ensure bot has all permissions needed
+                if not event.message.channel.get_permissions(
+                    self.state.me
+                ).can(bot_perms):
+
+                    # Ensure there is a command group
+                    if command.group:
+                        cmd = command.group + " " + command.name
+                    else:
+                       cmd = command.name
+
+
+                    return event.msg.reply(
+                        Parser.bot_perm_missing.format(
+                            Config["bot"]["commands_prefix"],
+                            cmd
+                        )
+                    )
+
+            # not allowing direct message commands
             else:
-
-
-                # ensure command group
-                if cmd_group != None:
-
-
-                    # ensure that command has DMs enabled
-                    if not reqs[plg_name][cmd_group][cmd_name]["DMs"]:
-                        return event.message.reply(Parser.not_DM_enabled)
-
-
-                    # Get boolean value of whether or not they have permissions
-                    has_permissions = check_permissions(
-                        self.client.api,
-                        event,
-                        reqs[plg_name][cmd_group][cmd_name]
-                    )
-
-
-                    # Error if they don't have the valid permissions
-                    if not has_permissions:
-                        return
-
-
-                # command no group
-                else:
-
-                    # ensure that command has DMs enabled
-                    if not reqs[plg_name][cmd_name]["DMs"]:
-                        return event.message.reply(Parser.not_DM_enabled)
-
-
-                    # Get boolean value of whether or not they have permissions
-                    has_permissions = check_permissions(
-                        self.client.api,
-                        event,
-                        reqs[plg_name][cmd_group][cmd_name]
-                    )
-
-
-                    # Error if they don't have the valid permissions
-                    if not has_permissions:
-                        return
+                return event.message.reply(Parser.not_DM_enabled)
 
 
             # handle message
@@ -425,12 +382,20 @@ class MessageParser(Plugin):
     # Message Created
     @Plugin.listen("MessageCreate")
     def on_message_create(self, event):
-        self.message_handling(event)
+        # try:
+        self.message_handling(event, False)
+        # except:
+            # pass
+
 
     # Message Edited
     @Plugin.listen("MessageUpdate")
     def on_message_update(self, event):
+        #try:
         self.message_handling(event, True)
+        #except:
+            # pass
+
 
 
 
@@ -438,78 +403,113 @@ class MessageParser(Plugin):
 
 
 
+
 class ReloadCommand(Plugin):
+
+    #=======================================#
+    # PLUGIN INFORMATION FOR PARSER:
+    can_reload = False
+    force_default = True
+    bypass_enabled = True
+    can_be_enabled = False
+    plugin_version = 2.0
+    config_settings = None
+
+    commands_config = {
+        "bot": {
+            "reload": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 4
+            }
+        }
+    }
+    #=======================================#
+
+
     @Plugin.command("reload", group="bot")
     def reload_plugins(self, event):
+        try:
 
-        # argument checking
-        if not len(event.args):
-            return event.msg.reply(GlobalAdmin.nea)
+            # argument checking
+            if not len(event.args):
+                return event.msg.reply(GlobalAdmin.nea)
 
-        # get plugins
-        plugins = self.bot.plugins
-        reloaded_plugins = []
-        invalid_plugins = []
-        didnt_reload = []
-
-
-        # reloading all plugins
-        if event.args[0].lower() == "all":
-
-            # cycle through plugins reloading them
-            for plugin in plugins:
-
-                # Ensure plugin can be reloaded
-                if plugin not in cannot_reload:
-                    reloaded_plugins.append(plugin)
-                    plugins[plugin].reload()
-                else:
-                    didnt_reload.append(plugin)
+            # get plugins
+            plugins = self.bot.plugins
+            reloaded_plugins = []
+            invalid_plugins = []
+            didnt_reload = []
 
 
-        # reloading only certain plugins
-        else:
+            # reloading all plugins
+            if event.args[0].lower() == "all":
 
-            # filter through arguments given
-            for plugin in event.args:
+                # cycle through plugins reloading them
+                for plugin in plugins:
 
-                # Ensure the plugin can be reloaded.
-                if plugin in cannot_reload:
-                    didnt_reload.append(plugin)
-                    continue
+                    # Ensure plugin can be reloaded
+                    if plugin.can_reload:
+                        reloaded_plugins.append(plugin)
+                        plugins[plugin].reload()
 
-                # ensure valid plugin
-                if plugin in plugins.keys():
-                    plugins[plugin].reload()
-                    reloaded_plugins.append(plugin)
-
-                # add to invalid list
-                else:
-                    invalid_plugins.append(plugin)
+                    # Didn't reload because we can't
+                    else:
+                        didnt_reload.append(plugin)
 
 
-        # Create response text
-        response = ""
+            # reloading only certain plugins
+            else:
 
-        # Check for reloaded plugins
-        if len(reloaded_plugins):
-            response = GlobalAdmin.reloaded_plugins.format(
-                ", ".join(
-                    reloaded_plugins
+                # filter through arguments given
+                for plugin in event.args:
+
+                    # ensure valid plugin
+                    if plugin in plugins.keys():
+
+                        # check if we can't reload the plugin
+                        if not plugins[plugin].can_reload:
+                            cannot_reload.append(plugin)
+                            continue
+
+                        plugins[plugin].reload()
+                        reloaded_plugins.append(plugin)
+
+                    # add to invalid list
+                    else:
+                        invalid_plugins.append(plugin)
+
+
+            # Create response text
+            response = ""
+
+            # Check for reloaded plugins
+            if len(reloaded_plugins):
+                response = GlobalAdmin.reloaded_plugins.format(
+                    ", ".join(
+                        reloaded_plugins
+                    )
                 )
-            )
 
-        # Check for invalid plugins
-        if len(invalid_plugins):
-            response = response + "\n\n" + GlobalAdmin.invalid_plugins.format(
-                ", ".join(invalid_plugins)
-            )
-        
-        # Check for plugins we couldn't reload
-        if len(didnt_reload):
-            response = response + "\n\n" + GlobalAdmin.didnt_reload_plugins.format(
-                ", ".join(didnt_reload)
-            )
+            # Check for invalid plugins
+            if len(invalid_plugins):
+                response = response + "\n\n" + GlobalAdmin.invalid_plugins.format(
+                    ", ".join(invalid_plugins)
+                )
+            
+            # Check for plugins we couldn't reload
+            if len(didnt_reload):
+                response = response + "\n\n" + GlobalAdmin.didnt_reload_plugins.format(
+                    ", ".join(didnt_reload)
+                )
 
-        if 2000 > len(response) > 0:
-            event.msg.reply(response)
+            # Ensure response isn't too long.
+            if 2000 > len(response) > 0:
+                event.msg.reply(response)
+
+            # Error in the chat
+            else:
+                event.msg.reply(GlobalAdmin.reload_too_long)
+        except:
+            pass
