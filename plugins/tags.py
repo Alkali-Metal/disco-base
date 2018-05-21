@@ -4,14 +4,18 @@ guild, in order to modify a tag or remove it, you must have at least the
 permission level from the tag itself.
 """
 
+# BOT IMPORTS:
 from data.constants import perm_ints, max_permission_int
 from data.types.bot.plugin_config import PluginConfig
 from data.types.bot.guild_config import GuildConfig
+from data.constants import bool_true, bool_false
 from data.types.discord.embeds import TagEmbed
 from data.types.bot.permissions import Perms
 from data.types.bot.config import Config
 from parser import triggers_commands
 from data.response import Tags
+
+# DISCO IMPORTS
 from disco.bot import Plugin
 
 
@@ -64,26 +68,6 @@ arg_types = {
     "url": "string",
     "global": "bool"
 }
-
-bool_true = [
-    "true",
-    "t",
-    "1",
-    "yes",
-    "y",
-    ":thumbsup:",
-    "👍"
-]
-
-bool_false = [
-    "false",
-    "f",
-    "0",
-    "no",
-    "n",
-    ":thumbsdown:",
-    "👎"
-]
 
 illegal_name_characters = [
     "*", "!", "@", "#", "$", "%", "^", "&", "(", ")",
@@ -271,11 +255,31 @@ def cleanse_text(text):
 
 class CustomCommands(Plugin):
 
+    #=======================================#
+    # PLUGIN INFORMATION FOR PARSER:
+    can_reload = True
+    force_default = False
+    bypass_enabled = False
+    can_be_enabled = True
+    plugin_version = 2.0
     config_settings = {
         "tags-logging_channel": "tags|options|log_channel",
         "tags-logging_enabled": "tags|options|logging",
         "tags-allow_global": "tags|options|allow_global"
     }
+
+    commands_config = {
+        "tag": {
+            "add": {
+                "allow_DMs": False,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 0,
+                "bypass_user_perms": False
+            }
+        }
+    }
+    #=======================================#
 
 
     @Plugin.listen("MessageCreate")

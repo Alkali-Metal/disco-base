@@ -1,38 +1,99 @@
+# BOT IMPORTS:
 from data.types.bot.plugin_config import PluginConfig
 from data.types.bot.config import Config
 from data.response import GlobalAdmin
-from parser import cannot_be_enabled
 
+# DISCO IMPORTS:
 from disco.bot import Plugin
 
-
-bots = []
 
 
 class GlobalAdministration(Plugin):
 
+    #=======================================#
+    # PLUGIN INFORMATION FOR PARSER:
+    can_reload = True
+    force_default = True
+    bypass_enabled = True
+    can_be_enabled = False
+    plugin_version = 2.0
+    config_settings = {}
+
+    commands_config = {
+        "plugin": {
+            "enable": {
+                "allow_DMs": True,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": False
+            },
+            "disable": {
+                "allow_DMs": True,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": False
+            },
+            "list": {
+                "allow_DMs": True,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 2,
+                "bypass_user_perms": False
+            }
+        },
+        "guild": {
+            "enable": {
+                "allow_DMs": True,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": False
+            }
+        }
+    }
+    #=======================================#
+
+#=============================================================================#
+# COMMANDS:
+
+
     @Plugin.command("enable", group="plugin")
     def plugin_enable(self, event):
+
+
+
         #argument checking
         if len(event.args) < 2:
             return event.msg.reply(GlobalAdmin.nea)
         guild_id = event.args[0]
         plugin = event.args[1]
 
+
         #is using "self" argument?
         if guild_id.lower() == "self":
-            guild_id = str(event.msg.guild.id)
+
+            # Ensure a guild exists
+            if event.guild:
+                guild_id = str(event.msg.guild.id)
+            else:
+                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
+
 
         #ensure the plugin exists
         if plugin not in self.bot.plugins.keys():
+
             return event.msg.reply(
                 GlobalAdmin.invalid_plugin.format(
                     plugin
                 )
             )
+        else:
+            plugin = self.bot.plugins[plugin]
 
         #ensure the plugin is allowed to be enabled
-        if plugin in cannot_be_enabled:
+        if not plugin.can_be_enabled:
             return event.msg.reply(
                 GlobalAdmin.cannot_be_enabled.format(
                     plugin
@@ -42,27 +103,29 @@ class GlobalAdministration(Plugin):
         config = PluginConfig.load("guild_list")
 
         #plugin enabled already?
-        if plugin not in config[guild_id]:
-            config[guild_id].append(plugin)
-            event.msg.reply(
+        if plugin.name not in config[guild_id]:
+            config[guild_id].append(plugin.name)
+            PluginConfig.write("guild_list", config)
+            return event.msg.reply(
                 GlobalAdmin.added_plugin.format(
-                    plugin,
+                    plugin.name,
                     guild_id
                 )
             )
-            PluginConfig.write("guild_list", config)
         else:
-            event.msg.reply(
+            return event.msg.reply(
                 GlobalAdmin.plugin_already_enabled.format(
                     guild_id,
-                    plugin
+                    plugin.name
                 )
             )
+        
     
 
 
     @Plugin.command("disable", group="plugin")
     def plugin_disable(self, event):
+
 
         #argument checking
         if len(event.args) < 2:
@@ -72,7 +135,10 @@ class GlobalAdministration(Plugin):
 
         #is using "self" argument?
         if guild_id.lower() == "self":
-            guild_id = str(event.msg.guild.id)
+            if event.guild:
+                guild_id = str(event.msg.guild.id)
+            else:
+                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
 
         #ensure the plugin exists
         if plugin not in self.bot.plugins.keys():
@@ -81,9 +147,10 @@ class GlobalAdministration(Plugin):
                     plugin
                 )
             )
+        plugin = self.bot.plugins[plugin]
 
         #ensure the plugin is allowed to be enabled
-        if plugin in cannot_be_enabled:
+        if not plugin.can_be_enabled:
             return event.msg.reply(
                 GlobalAdmin.cannot_be_enabled.format(
                     plugin
@@ -117,21 +184,27 @@ class GlobalAdministration(Plugin):
     @Plugin.command("list", group="plugin")
     def plugin_list(self, event):
 
+
         #ensure the user supplies at least one argument
         if len(event.args) < 1:
             return event.msg.reply(GlobalAdmin.nea)
         
         #check if the guild_id is self
         if event.args[0].lower() == "self":
-            guild_id = str(event.msg.guild.id)
+            if event.guild:
+                guild_id = str(event.msg.guild.id)
+            else:
+                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
         else:
             guild_id = event.args[0]
-        
+
+
         try:
             #loading the guild's plugins
             plugins = PluginConfig.load("guild_list")[guild_id]
         except KeyError:
             return event.msg.reply(GlobalAdmin.invalid_arg.format(guild_id))
+
 
         #convert arguments if given
         try:
@@ -139,7 +212,7 @@ class GlobalAdministration(Plugin):
             if len(event.args) == 2:
                 start = 0
                 end = int(event.args[1])
-            
+
             #both
             elif len(event.args) == 3:
                 start = int(event.args[1])
@@ -190,6 +263,7 @@ class GlobalAdministration(Plugin):
     @Plugin.command("enable", group="guild", aliases=["whitelist"])
     def guild_enable(self, event):
 
+
         guild_list = PluginConfig.load("guild_list")
 
         #check if arguments used
@@ -231,6 +305,7 @@ class GlobalAdministration(Plugin):
     @Plugin.command("disable", group="guild")
     def guild_disable(self, event):
 
+
         guild_list = PluginConfig.load("guild_list")
 
         #check if arguments used
@@ -241,7 +316,10 @@ class GlobalAdministration(Plugin):
         
         #"self" argument used
         if guild_id.lower() == "self":
-            guild_id = str(event.msg.guild.id)
+            if event.guild:
+                guild_id = str(event.msg.guild.id)
+            else:
+                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
 
         #ensure guild not enabled
         if guild_id not in guild_list.keys():
@@ -269,6 +347,7 @@ class GlobalAdministration(Plugin):
     @Plugin.command("list", group="guild")
     def guild_list(self, event):
 
+
         #loading the guild list
         guild_list = PluginConfig.load("guild_list")
 
@@ -293,9 +372,11 @@ class GlobalAdministration(Plugin):
         except ValueError:
             return event.msg.reply(GlobalAdmin.invalid_int)
 
+
         #Ensure start is not greater than end
         if (start - end) > 0:
             return event.msg.reply(GlobalAdmin.error)
+
         #Start == end (meaning no guilds to list)
         elif (start - end) == 0:
             return event.msg.reply(

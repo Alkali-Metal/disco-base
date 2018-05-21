@@ -220,7 +220,41 @@ def webhook_url_check(event, webhook):
 
 class GuildLogging(Plugin):
 
-    config_settings = {}
+    #=======================================#
+    # PLUGIN INFORMATION FOR PARSER:
+    can_reload = True
+    force_default = False
+    bypass_enabled = False
+    can_be_enabled = True
+    plugin_version = 2.0
+    config_settings = None
+
+    commands_config = {
+        "log": {
+            "add": {
+                "allow_DMs": False,
+                "bot_perms": 536870912,
+                "user_perms": 0,
+                "default_level": 1,
+                "bypass_user_perms": False
+            },
+            "remove": {
+                "allow_DMs": False,
+                "bot_perms": 536870912,
+                "user_perms": 0,
+                "default_level": 1,
+                "bypass_user_perms": False
+            },
+            "event add": {
+                "allow_DMs": False,
+                "bot_perms": 0,
+                "user_perms": 16,
+                "default_level": 1,
+                "bypass_user_perms": False
+            }
+        }
+    }
+    #=======================================#
 
 
 #=============================================================================#
@@ -230,6 +264,7 @@ class GuildLogging(Plugin):
 
     @Plugin.command("add", group="log")
     def log_add(self, event):
+
 
         # Argument checking
         if len(event.args) == 1:

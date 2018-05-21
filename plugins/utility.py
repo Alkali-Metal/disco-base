@@ -3,16 +3,19 @@ Utility commands that don't really belong in any other plugin that deal with
 the backend of the bot. As well as the commands used to edit the guild's
 configuration
 """
+# BOT IMPORTS:
 from data.types.bot.permissions import Perms
 from data.types.discord.role import Role
 from data.response import Util, Invalid
 
+# DISCO IMPORTS:
 from disco.types.guild import GuildMember
 from disco.types.user import User
 from disco.bot import Plugin
 
 
 
+# Pre-define config options that are always going to exist.
 valid_settings = {
     "mod_role_ids": "permissions|mod|IDs",
     "mod_role_names": "permissions|mod|names",
@@ -21,20 +24,47 @@ valid_settings = {
     "cmd_perms": "cmd lvls"
 }
 
-no_config_plugins = [
-    "MessageParser",
-    "ReloadCommand",
-    "ConfigEditor",
-    "AdminLogging",
-    "GlobalAdministration"
-]
-
-
 
 
 class UtilCommands(Plugin):
 
+    #=======================================#
+    # PLUGIN INFORMATION FOR PARSER:
+    can_reload = True
+    force_default = False
+    bypass_enabled = False
+    can_be_enabled = True
+    plugin_version = 2.0
     config_settings = {}
+
+    commands_config = {
+        "util": {
+            "level": {
+                "allow_DMs": True,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 0,
+                "bypass_user_perms": False
+            },
+            "roles": {
+                "allow_DMs": False,
+                "bot_perms": 2048,
+                "user_perms": 268435456,
+                "default_level": 2,
+                "bypass_user_perms": False
+            }
+        },
+        "cmd": {
+            "info": {
+                "allow_DMs": False,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 2,
+                "bypass_user_perms": True
+            }
+        }
+    }
+    #=======================================#
 
 
     # Command to get the user's level in the backend of the bot
@@ -63,7 +93,6 @@ class UtilCommands(Plugin):
                 user = event.msg.member
             else:
                 user = event.msg.author
-        
 
 
         # Acknowledge
@@ -110,7 +139,30 @@ class UtilCommands(Plugin):
 
 
 
+
+
 class ConfigEditor(Plugin):
+
+    #=======================================#
+    # PLUGIN INFORMATION FOR PARSER:
+    can_reload = True
+    force_default = False
+    bypass_enabled = False
+    can_be_enabled = True
+    plugin_version = 2.0
+    config_settings = None
+
+    commands_config = {
+        "<GroupName | None>": {
+            "<CommandName>": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 0
+            }
+        }
+    }
+    #=======================================#
 
     # Instatiation function
     def init(self):
@@ -119,7 +171,7 @@ class ConfigEditor(Plugin):
         for plugin in self.bot.plugins:
 
             # Ensure plugin actually has config options for 
-            if plugin not in no_config_plugins:
+            if plugin.config_settings != None:
                 plugin = self.bot.plugins[plugin]
                 settings = plugin.config_settings
 

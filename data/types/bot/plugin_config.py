@@ -19,7 +19,7 @@ class PluginConfig:
                 data = json.load(file)
             return data
         except:
-             PluginError("Plugin config cannot be found.")
+            PluginError("Plugin config cannot be found.")
 
 
 
