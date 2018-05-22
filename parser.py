@@ -78,6 +78,11 @@ class MessageParser(Plugin):
     can_be_enabled = False
     plugin_version = 4.1
     config_settings = None
+    plugin_info = [
+        "The message parser for the bot. This plugin cannot be enabled and",
+        "has no functionality other than MAKING THE ENTIRE BOT WORK.",
+        "So this plugin cannot be enabled nor disabled. TAKE THAT MOM!"
+    ]
     commands_config = {}
     #=======================================#
 
@@ -180,11 +185,14 @@ class MessageParser(Plugin):
             command = commands[0][0]
             plugin = command.plugin
 
-            cmd_config = plugin.commands_config[str(command.group)][command.name]
-            allow_DMs = cmd_config["allow_DMs"]
-            bot_perms = cmd_config["bot_perms"]
-            user_perms = cmd_config["user_perms"]
-            default_level = cmd_config["default_level"]
+            try:
+                cmd_config = plugin.commands_config[str(command.group)][command.name]
+                allow_DMs = cmd_config["allow_DMs"]
+                bot_perms = cmd_config["bot_perms"]
+                user_perms = cmd_config["user_perms"]
+                default_level = cmd_config["default_level"]
+            except:
+                return event.message.reply(Parser.generic_error)
 
 
             #-----------------------------------------------------------------#
@@ -421,7 +429,10 @@ class ReloadCommand(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": 4
+                "default_level": 4,
+                "bypass_user_perms": True,
+                "syntax": [],
+                "info": []
             }
         }
     }
