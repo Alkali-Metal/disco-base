@@ -59,6 +59,7 @@ class GlobalAdmin:
 
 
 class Admin:
+    nea = Parser.not_enough_arguments
     invalid_perms = Invalid.permissions
     invalid_arg = Invalid.argument
     cant_messages = "Cannot manage messages. Make sure I have the `Manage Messages` permission."
@@ -134,10 +135,13 @@ class VoicelessRoles:
 
 class Util:
     error = Parser.generic_error
+    invalid_arg = Invalid.argument
+    nea = Parser.not_enough_arguments
     level = "{}'s permission level: `{}`"
+    plugin_not_enabled = redtick + ": This guild does not have the `{}` plugin enabled and hence, cannot access it's help from within this server."
 
 
-class Misc:
+class MiscResponse:
     test_confirmed = "Test confirmed:tm:"
     ipie_boop = "<@230889918094639107>, well hello there."
 
