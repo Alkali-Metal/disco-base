@@ -18,7 +18,7 @@ class GlobalAdministration(Plugin):
     can_be_enabled = False
     plugin_version = 2.0
     config_settings = {}
-
+    plugin_info = []
     commands_config = {
         "plugin": {
             "enable": {
@@ -26,21 +26,27 @@ class GlobalAdministration(Plugin):
                 "bot_perms": 2048,
                 "user_perms": 0,
                 "default_level": 4,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             },
             "disable": {
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
                 "default_level": 4,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             },
             "list": {
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
                 "default_level": 2,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             }
         },
         "guild": {
@@ -49,7 +55,9 @@ class GlobalAdministration(Plugin):
                 "bot_perms": 2048,
                 "user_perms": 0,
                 "default_level": 4,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             }
         }
     }

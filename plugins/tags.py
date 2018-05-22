@@ -5,7 +5,9 @@ permission level from the tag itself.
 """
 
 # BOT IMPORTS:
-from data.constants import perm_ints, max_permission_int
+from data.constants import (discord_permission_values,
+                            max_permission_int,
+                            perm_ints)
 from data.types.bot.plugin_config import PluginConfig
 from data.types.bot.guild_config import GuildConfig
 from data.constants import bool_true, bool_false
@@ -72,7 +74,7 @@ arg_types = {
 illegal_name_characters = [
     "*", "!", "@", "#", "$", "%", "^", "&", "(", ")",
     "[", "]", "{", "}", "?", "\"", "\'", "`", "~", "\\",
-    "/", "+", ".", ",", ">", "<", ";", ":"
+    "/", "+", ".", ",", ">", "<", ";", ":", " "
 ]
 
 
@@ -101,28 +103,30 @@ def respond_to_tag(event, tag_data):
 
     # Check if embedding it
     if tag_data["embed"]:
+
+        
+
+        # Get embed:
         try:
-            # Get embed:
-            try:
-                embed = TagEmbed(
-                    tag_data,
-                    variables
-                )
+            embed = TagEmbed(
+                tag_data,
+                variables
+            )
 
-                # Try to embed the message
-                return msg.reply(
-                    tag_data["content"],
-                    embed=embed
-                )
+            # Try to embed the message
+            return msg.reply(
+                tag_data["content"],
+                embed=embed
+            )
 
-            # Error if user didn't supply enough arguments
-            except IndexError:
-                return msg.reply(Tags.nea)
+        # Error if user didn't supply enough arguments
+        except IndexError:
+            return msg.reply(Tags.nea)
 
-            # Error if part of the tag embed is missing
-            except KeyError:
-                msg.reply(Tags.key_missing)
-                return msg.reply(tag_data["response"])
+        # Error if part of the tag embed is missing
+        except KeyError:
+            msg.reply(Tags.key_missing)
+            return msg.reply(tag_data["response"])
 
         except:
             # Return an embed error
@@ -171,7 +175,7 @@ def argument_convert(key, value):
             if value in perm_ints:
                 return perm_ints[value]
             else:
-            return
+                return
 
     # hex colour
     elif arg_types[key] == "hex":
@@ -247,7 +251,7 @@ def tag_data_parser(message_content,
     return tag_data
 
 
-
+# TODO: Actually use the cleanse text function.
 def cleanse_text(text):
     pass
 
@@ -267,7 +271,11 @@ class CustomCommands(Plugin):
         "tags-logging_enabled": "tags|options|logging",
         "tags-allow_global": "tags|options|allow_global"
     }
-
+    plugin_info = [
+        "Allows the creation of commands for specific guilds, allows users to",
+        "have embedded responses and customize almost the entirety of the",
+        "response."
+    ]
     commands_config = {
         "tag": {
             "add": {
@@ -275,7 +283,68 @@ class CustomCommands(Plugin):
                 "bot_perms": 2048,
                 "user_perms": 0,
                 "default_level": 0,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}tag add",
+                    "--<Field Name>=<Value>..."
+                ],
+                "info": [
+                    "Allows the user to create a custom command for the",
+                    "guild, only mandatory fields are `name` and `response`",
+                    "all other fields for this command have defaults. Valid",
+                    "fields and types are as follows: `name` (String),",
+                    "`response` (String), `embed` (Boolean), `colour` (Hex",
+                    "code), `footer` (String), `level` (Integer), `content`",
+                    "(String), `url` (String), `title` (String), `global`",
+                    "(Boolean). For a description of each of these fields",
+                    "you can read the documentation more in-depth [here]&",
+                    "&(http://discord-bots.rtfd.io/en/latest/plugins/&",
+                    "&Tags/#options-list)"
+                ]
+            },
+            "remove":{
+                "allow_DMs": False,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 0,
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}tag remove",
+                    "<Tag Name>",
+                    "[Is Global]"
+                ],
+                "info": [
+                    "Allows the user to remove a custom command for the",
+                    "guild. Must have the minimum permission as well as",
+                    "the permission level of the command at least (Guild",
+                    "owner bypasses the command permission level check).",
+                    "If `[Is Global]` is set to `true` then you must be a",
+                    "global administrator."
+                ]
+            },
+            "modify": {
+                "allow_DMs": False,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 0,
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}tag modify",
+                    "--<Field Name>=<Value>..."
+                ],
+                "info": [
+                    "Allows the user to modify a custom command for the",
+                    "guild that already exists, the only mandatory field",
+                    "is `name` all other fields for this command are ",
+                    "optional. Valid fields and types are as follows:",
+                    "`name` (String), `response` (String), `embed` (Boolean),",
+                    "`colour` (Hex code), `footer` (String), `level` (Integer)",
+                    ", `content` (String), `url` (String), `title` (String),",
+                    "`global` (Boolean). For a description of each of these",
+                    "fields you can read the documentation more in-depth",
+                    "[here](http://discord-bots.rtfd.io/en/latest/plugins/&",
+                    "&Tags/#options-list)"
+                ]
             }
         }
     }
@@ -320,6 +389,20 @@ class CustomCommands(Plugin):
             # Retrieve tag data
             if command in global_tags["tags"]["list"].keys():
                 tag_data = global_tags["tags"]["list"][command]
+
+                # Check if we are embedding the response
+                if tag_data["embed"]:
+
+                    # Ensure we have the proper permissions:
+                    if not event.message.channel.get_permissions(
+                        self.state.me
+                    ).can(
+                        discord_permission_values["embed_links"]
+                    ):
+                        return event.message.reply(Tags.embed_error)
+
+
+                # Respond to command
                 response = respond_to_tag(
                     event,
                     tag_data
@@ -348,6 +431,20 @@ class CustomCommands(Plugin):
             # Retrieve tag data
             if command in guild_tags["tags"]["list"].keys():
                 tag_data = guild_tags["tags"]["list"][command]
+                print(event.channel.get_permissions(self.state.me).to_dict())
+                # Check if we are embedding the response
+                if tag_data["embed"]:
+
+                    # Ensure we have the proper permissions:
+                    if not event.message.channel.get_permissions(
+                        self.state.me
+                    ).can(
+                        discord_permission_values["embed_links"]
+                    ):
+                        return event.message.reply(Tags.embed_error)
+
+
+                # Respond to command
                 response = respond_to_tag(
                     event,
                     tag_data
@@ -511,11 +608,11 @@ class CustomCommands(Plugin):
             # global == true
             if event.args[1].lower() in bool_true:
                 is_global = True
-            
+
             # global == False
             elif event.args[1].lower() in bool_false:
                 is_global = False
-            
+
             # invalid argument
             else:
                 return event.msg.reply(
@@ -523,7 +620,7 @@ class CustomCommands(Plugin):
                         event.args[1]
                     )
                 )
-        
+
         # Only tag name given
         elif len(event.args) == 1:
             tag = event.args[0]

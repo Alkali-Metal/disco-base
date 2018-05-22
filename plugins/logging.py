@@ -228,7 +228,7 @@ class GuildLogging(Plugin):
     can_be_enabled = True
     plugin_version = 2.0
     config_settings = None
-
+    plugin_info = []
     commands_config = {
         "log": {
             "add": {
@@ -236,21 +236,27 @@ class GuildLogging(Plugin):
                 "bot_perms": 536870912,
                 "user_perms": 0,
                 "default_level": 1,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             },
             "remove": {
                 "allow_DMs": False,
                 "bot_perms": 536870912,
                 "user_perms": 0,
                 "default_level": 1,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             },
             "event add": {
                 "allow_DMs": False,
                 "bot_perms": 0,
                 "user_perms": 16,
                 "default_level": 1,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             }
         }
     }

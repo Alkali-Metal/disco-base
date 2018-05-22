@@ -1,4 +1,4 @@
-from data.response import Misc
+from data.response import MiscResponse
 
 from disco.bot import Plugin
 
@@ -13,6 +13,9 @@ class Misc(Plugin):
     bypass_enabled = False
     can_be_enabled = True
     config_settings = {}
+    plugin_info = [
+        "Random commands that don't belong in any other plugin."
+    ]
     commands_config = {
         "None": {
             "test": {
@@ -20,7 +23,13 @@ class Misc(Plugin):
                 "bot_perms": 2048,
                 "user_perms": 0,
                 "default_level": 0,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}test"
+                ],
+                "info": [
+                    "Tests to ensure the bot is online."
+                ]
             }
         }
     }
@@ -31,5 +40,4 @@ class Misc(Plugin):
     @Plugin.command("test")
     def test_command(self, event):
 
-        event.msg.reply(Misc.test_confirmed)
-        print(self.bot.plugins)
+        event.msg.reply(MiscResponse.test_confirmed)

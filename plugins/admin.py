@@ -20,7 +20,9 @@ class Administration(Plugin):
     can_be_enabled = True
     plugin_version = 1.0
     config_settings = None
-
+    plugin_info = [
+        "Provides useful commands for administrators and moderators."
+    ]
     commands_config = {
         "None": {
             "ban": {
@@ -30,10 +32,12 @@ class Administration(Plugin):
                 "default_level": 1,
                 "bypass_user_perms": True,
                 "syntax": [
-                    "{pre}ban <User: Mention"
+                    "{pre}ban",
+                    "<User: user mention>",
+                    "[Reason...: string]"
                 ],
                 "info": [
-                    ""
+                    "Bans a user with the given reason, reason not mandatory."
                 ]
             },
             "forceban": {
@@ -41,14 +45,46 @@ class Administration(Plugin):
                 "bot_perms": 2052,
                 "user_perms": 4,
                 "default_level": 1,
-                "bypass_user_perms": True
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}forceban",
+                    "<User: user ID>",
+                    "[Reason...: string]"
+                ],
+                "info": [
+                    "Bans the user with the specified ID, reason is not",
+                    "mandatory, used if given."
+                ]
+            },
+            "massban-reason": {
+                "allow_DMs": False,
+                "bot_perms": 2052,
+                "user_perms": 4,
+                "default_level": 2,
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}massban-reason",
+                    "[--<ID: string>=<Reason...>]..."
+                ],
+                "info": [
+                    "Allows banning a large amount of users by ID, reasons",
+                    "are not supported with this command."
+                ]
             },
             "massban": {
                 "allow_DMs": False,
                 "bot_perms": 2052,
                 "user_perms": 4,
                 "default_level": 2,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}massban",
+                    "[--<ID: string>=<Reason...>]..."
+                ],
+                "info": [
+                    "Allows banning a large amount of users by ID, with an",
+                    "individual reason for each user"
+                ]
             }
         },
         "clean": {
@@ -57,7 +93,7 @@ class Administration(Plugin):
                 "bot_perms": 76800,
                 "user_perms": 8192,
                 "default_level": 3,
-                "bypass_user_perms": False
+                "bypass_user_perms": False,
                 "syntax": [
                     "{pre}clean channel",
                     "[Amount: integer]"
@@ -150,15 +186,14 @@ class Administration(Plugin):
 
 
 
-    @Plugin.command("massban")
-    def massban(self, event):
+    @Plugin.command("massban-reason")
+    def reason_massban(self, event):
 
         # Argument checking
         if not len(event.args):
             return event.msg.reply(Admin.nea)
 
         args = " ".join(event.args).split("--")
-        print(args)
         users_to_ban = {}
 
 
@@ -174,13 +209,11 @@ class Administration(Plugin):
                     # Ensure user isn't trying to ban themselves
                     if int(ID) != event.msg.author.id:
                         users_to_ban[ID] = reason
-                else:
-                    continue
-                    #event.msg.reply(Admin.invalid_arg.format(arg))
 
         already_banned_users = 0
         banned_users = 0
         GUILD_BAN_LIST = event.msg.guild.get_bans().keys()
+
 
         # Cycle through banning each user
         for user in users_to_ban:
@@ -194,7 +227,68 @@ class Administration(Plugin):
                 continue
 
             # Banning
-            event.msg.guild.create_ban(target, reason=reason)
+            event.msg.guild.create_ban(
+                target,
+                reason=reason
+            )
+            banned_users += 1
+            sleep(2)
+
+
+        # Acknowledge
+        event.msg.reply(
+            Admin.mass_ban.format(
+                len(users_to_ban),
+                banned_users,
+                already_banned_users
+            )
+        )
+
+
+
+    @Plugin.command("massban")
+    def massban(self, event):
+
+        # Argument checking
+        if not len(event.args):
+            return event.msg.reply(Admin.nea)
+
+        args = " ".join(event.args).split("--")
+
+
+        # Cycle through each of the given users and add to the dict
+        for arg in args:
+
+            # Ensure the string is not just empty
+            if len(arg):
+                # Ensure the argument is valid
+                if "=" in arg:
+                    ID, reason = arg.split("=")
+
+                    # Ensure user isn't trying to ban themselves
+                    if int(ID) != event.msg.author.id:
+                        users_to_ban[ID] = reason
+
+
+        already_banned_users = 0
+        banned_users = 0
+        GUILD_BAN_LIST = event.msg.guild.get_bans().keys()
+
+        # Cycle through banning each user
+        for user in users_to_ban:
+
+            target = user
+
+            # Ensure not already banned
+            if int(target) in GUILD_BAN_LIST:
+                already_banned_users += 1
+                continue
+
+            # Banning
+            event.msg.guild.create_ban(
+                target,
+                reason="Mass banned by IDs."
+            )
             banned_users += 1
             sleep(2)
 
