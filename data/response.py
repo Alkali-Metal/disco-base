@@ -1,5 +1,7 @@
-redtick = "<:redtick:359072372789215232>"
-greentick = "<:greentick:359072286466244609>"
+from data.constants import custom_emojis as emoji
+
+redtick = emoji["red_tick"]
+greentick = emoji["green_tick"]
 
 
 
@@ -50,7 +52,7 @@ class GlobalAdmin:
     guild_not_enabled = redtick + ": Guild `{}` isn't enabled."
     guild_enabled = greentick + ": Guild `{}` has been enabled."
     guild_disabled = greentick + ": Guild `{}` has been disabled."
-    guild_list = "Enabled guilds:\n```{}```"
+    guild_list = "Guild List: ```diff\n{}\n```"
     reloaded_plugins = "The following plugins have been reloaded: ```\n{}\n```"
     invalid_plugins = "The following plugins are invalid: ```\n{}\n```"
     didnt_reload_plugins = "The following plugins cannot be reloaded: ```\n{}\n```"
