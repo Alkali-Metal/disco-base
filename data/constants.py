@@ -1,3 +1,13 @@
+custom_emojis = {
+    "red_tick": "<:redtick:359072372789215232>",
+    "green_tick": "<:greentick:359072286466244609>",
+    "-1": "<:decrease:363848504990367744>",
+    "+1": "<:increase:363848505024053248>",
+    "yellow_exclaim": "<:report:383406481162371072>",
+    "red_exclaim": "<:reported:383406480939941889>"
+}
+
+
 # Permission ints
 perm_ints = {
     "bot_creator":   100,
