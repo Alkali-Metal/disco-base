@@ -83,7 +83,26 @@ class MessageParser(Plugin):
         "has no functionality other than MAKING THE ENTIRE BOT WORK.",
         "So this plugin cannot be enabled nor disabled. TAKE THAT MOM!"
     ]
-    commands_config = {}
+    commands_config = {
+        "bot": {
+            "reload": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}bot reload",
+                    "<Plugins...: string>"
+                ],
+                "info": [
+                    "Reloads plugins from the specified list. Not all plugins",
+                    "can actually be reloaded. If they cannot be reloaded,",
+                    "the bot will alert you of this in the response."
+                ]
+            }
+        }
+    }
     #=======================================#
 
 
@@ -163,18 +182,44 @@ class MessageParser(Plugin):
 
             #-----------------------------------------------------------------#
 
-                # ensure message startswith the prefix
+                # Ensure message startswith the prefix
                 if event.message.content.startswith(prefix):
 
-                #-------------------------------------------------------------#
-
-                    # see if we're responding to invalid
+                    # See if we're responding to invalid
                     if config["parser"]["respond_to_invalid"]:
-                        return event.message.reply(Invalid.command)
+
+                        # Ensure we can send messages
+                        if event.channel.get_permissions(
+                            self.state.me
+                        ).can(2048):
+                            return event.message.reply(Invalid.command)
+
+
+                        # if we can't send messages check if we can add reactions
+                        elif event.channel.get_permissions(
+                            self.state.me
+                        ).can(262208):
+                            return event.message.add_reaction(
+                                custom_emojis["red_tick"]
+                            )
+
+                        else:
+                            return
                     else:
                         return
                 else:
                     return
+
+
+            #-----------------------------------------------------------------#
+            # Erroring if we don't have the absolute bare minimum permissions
+            #  for anything, (ie: sending messages)
+
+            # Ensure we have send message permissions, else, error
+            if not event.channel.get_permissions(
+                self.state.me
+            ).can(2048):
+                return
 
 
             #-----------------------------------------------------------------#
@@ -406,121 +451,89 @@ class MessageParser(Plugin):
 
 
 
-
 #=============================================================================#
 
 
 
-
-class ReloadCommand(Plugin):
-
-    #=======================================#
-    # PLUGIN INFORMATION FOR PARSER:
-    can_reload = False
-    force_default = True
-    bypass_enabled = True
-    can_be_enabled = False
-    plugin_version = 2.0
-    config_settings = None
-
-    commands_config = {
-        "bot": {
-            "reload": {
-                "allow_DMs": True,
-                "bot_perms": 0,
-                "user_perms": 0,
-                "default_level": 4,
-                "bypass_user_perms": True,
-                "syntax": [],
-                "info": []
-            }
-        }
-    }
-    #=======================================#
-
-
     @Plugin.command("reload", group="bot")
     def reload_plugins(self, event):
-        try:
 
-            # argument checking
-            if not len(event.args):
-                return event.msg.reply(GlobalAdmin.nea)
+        # argument checking
+        if not len(event.args):
+            return event.msg.reply(GlobalAdmin.nea)
 
-            # get plugins
-            plugins = self.bot.plugins
-            reloaded_plugins = []
-            invalid_plugins = []
-            didnt_reload = []
-
-
-            # reloading all plugins
-            if event.args[0].lower() == "all":
-
-                # cycle through plugins reloading them
-                for plugin in plugins:
-
-                    # Ensure plugin can be reloaded
-                    if plugin.can_reload:
-                        reloaded_plugins.append(plugin)
-                        plugins[plugin].reload()
-
-                    # Didn't reload because we can't
-                    else:
-                        didnt_reload.append(plugin)
+        # get plugins
+        plugins = self.bot.plugins
+        reloaded_plugins = []
+        invalid_plugins = []
+        didnt_reload = []
 
 
-            # reloading only certain plugins
-            else:
+        # reloading all plugins
+        if event.args[0].lower() == "all":
 
-                # filter through arguments given
-                for plugin in event.args:
+            # cycle through plugins reloading them
+            for plugin in plugins:
 
-                    # ensure valid plugin
-                    if plugin in plugins.keys():
+                # Ensure plugin can be reloaded
+                if plugin.can_reload:
+                    reloaded_plugins.append(plugin)
+                    plugins[plugin].reload()
 
-                        # check if we can't reload the plugin
-                        if not plugins[plugin].can_reload:
-                            cannot_reload.append(plugin)
-                            continue
-
-                        plugins[plugin].reload()
-                        reloaded_plugins.append(plugin)
-
-                    # add to invalid list
-                    else:
-                        invalid_plugins.append(plugin)
+                # Didn't reload because we can't
+                else:
+                    didnt_reload.append(plugin)
 
 
-            # Create response text
-            response = ""
+        # reloading only certain plugins
+        else:
 
-            # Check for reloaded plugins
-            if len(reloaded_plugins):
-                response = GlobalAdmin.reloaded_plugins.format(
-                    ", ".join(
-                        reloaded_plugins
-                    )
+            # filter through arguments given
+            for plugin in event.args:
+
+                # ensure valid plugin
+                if plugin in plugins.keys():
+
+                    # check if we can't reload the plugin
+                    if not plugins[plugin].can_reload:
+                        cannot_reload.append(plugin)
+                        continue
+
+                    plugins[plugin].reload()
+                    reloaded_plugins.append(plugin)
+
+                # add to invalid list
+                else:
+                    invalid_plugins.append(plugin)
+
+
+        # Create response text
+        response = ""
+
+        # Check for reloaded plugins
+        if len(reloaded_plugins):
+            response = GlobalAdmin.reloaded_plugins.format(
+                ", ".join(
+                    reloaded_plugins
                 )
+            )
 
-            # Check for invalid plugins
-            if len(invalid_plugins):
-                response = response + "\n\n" + GlobalAdmin.invalid_plugins.format(
-                    ", ".join(invalid_plugins)
-                )
-            
-            # Check for plugins we couldn't reload
-            if len(didnt_reload):
-                response = response + "\n\n" + GlobalAdmin.didnt_reload_plugins.format(
-                    ", ".join(didnt_reload)
-                )
+        # Check for invalid plugins
+        if len(invalid_plugins):
+            response = response + "\n\n" + GlobalAdmin.invalid_plugins.format(
+                ", ".join(invalid_plugins)
+            )
+        
+        # Check for plugins we couldn't reload
+        if len(didnt_reload):
+            response = response + "\n\n" + GlobalAdmin.didnt_reload_plugins.format(
+                ", ".join(didnt_reload)
+            )
 
-            # Ensure response isn't too long.
-            if 2000 > len(response) > 0:
-                event.msg.reply(response)
+        # Ensure response isn't too long.
+        if 2000 > len(response) > 0:
+            event.msg.reply(response)
 
-            # Error in the chat
-            else:
-                event.msg.reply(GlobalAdmin.reload_too_long)
-        except:
-            pass
+        # Error in the chat
+        else:
+            event.msg.reply(GlobalAdmin.reload_too_long)
