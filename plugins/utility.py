@@ -52,12 +52,15 @@ def filter_perms(member_value, target_value):
             # Check if permissions is valid
             if can:
 
-                # Ensure user uses permissions
-                if member_perms.can(discord_permission_values[perm.lower()]):
-                    response = response + "\n+ " + perm.upper()
+                try:
+                    # Ensure user uses permissions
+                    if member_perms.can():
+                        response = response + "\n+ " + perm.upper()
 
-                else:
-                    response = response + "\n- " + perm.upper()
+                    else:
+                        response = response + "\n- " + perm.upper()
+                except KeyError:
+                    continue
 
         return response
 
@@ -237,7 +240,7 @@ class Utility(Plugin):
         "cmd",
         group="info",
         aliases=[
-            "help"
+            "help",
             "command"
         ]
     )
@@ -326,10 +329,11 @@ class Utility(Plugin):
         )
 
 
+        # Cycle through command triggers making the alias list
         cmd_aliases = []
         for name in cmd.triggers:
             cmd_aliases.append(name)
-
+        cmd_aliases.remove(cmd.name)
 
         variables = {
             "pre": Config.load()["bot"]["commands_prefix"],
