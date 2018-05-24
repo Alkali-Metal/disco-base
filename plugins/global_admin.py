@@ -16,9 +16,14 @@ class GlobalAdministration(Plugin):
     force_default = True
     bypass_enabled = True
     can_be_enabled = False
-    plugin_version = 2.0
+    plugin_version = 0.2
     config_settings = {}
-    plugin_info = []
+    plugin_info = [
+        "Commands for global administrators to enable, disable, and list both",
+        "guilds and their plugins. Also logs events: `ready`, `guild_create`,",
+        "`guild_delete`, `guild_available`, `guild_unavailable` to the admin",
+        "logging webhook."
+    ]
     commands_config = {
         "plugin": {
             "enable": {
@@ -27,8 +32,16 @@ class GlobalAdministration(Plugin):
                 "user_perms": 0,
                 "default_level": 4,
                 "bypass_user_perms": False,
-                "syntax": [],
-                "info": []
+                "syntax": [
+                    "{pre}plugin enable",
+                    "<Guild: Snowflake | `self`>",
+                    "<Plugin: String>"
+                ],
+                "info": [
+                    "Enables a plugin for the specified guild. If `self` is",
+                    "used rather than a snowflake, it will enable the plugin",
+                    "for whatever guild the command was run from within."
+                ]
             },
             "disable": {
                 "allow_DMs": True,
@@ -36,8 +49,16 @@ class GlobalAdministration(Plugin):
                 "user_perms": 0,
                 "default_level": 4,
                 "bypass_user_perms": False,
-                "syntax": [],
-                "info": []
+                "syntax": [
+                    "{pre}plugin disable",
+                    "<Guild: Snowflake | `self`>",
+                    "<Plugin: String>"
+                ],
+                "info": [
+                    "Disables a plugin for the specified guild. If `self` is",
+                    "used rather than a snowflake, it will disable the plugin",
+                    "for whatever guild the command was run from within."
+                ]
             },
             "list": {
                 "allow_DMs": True,
@@ -45,6 +66,64 @@ class GlobalAdministration(Plugin):
                 "user_perms": 0,
                 "default_level": 2,
                 "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}plugin list",
+                    "<Guild: Snowflake | `self`>",
+                    "[Start: Integer]",
+                    "[Stop: Integer]"
+                ],
+                "info": [
+                    "Lists all plugins enabled within the guild specified.",
+                    "If `Start` is not given in the command, it will be",
+                    "changed to `Stop`."
+                ]
+            },
+            "install": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}plugin install",
+                    "<Gist Plugin URL: String>"
+                ],
+                "info": [
+                    "Downloads a plugin from the specified [URL]&",
+                    "&(https://gist.github.com 'GistHub') and adds it to the",
+                    "plugin directory of the bot, so that it can be added."
+                ]
+            },
+            "delete": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}plugin delete",
+                    "<File Name: String>"
+                ],
+                "info": [
+                    "This deletes an entire plugin file from within the",
+                    "`plugins` directory, some plugins cannot be deleted."
+                ]
+            },
+            "add": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": True,
+                "syntax": [],
+                "info": []
+            },
+            "remove": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": True,
                 "syntax": [],
                 "info": []
             }
@@ -56,8 +135,66 @@ class GlobalAdministration(Plugin):
                 "user_perms": 0,
                 "default_level": 4,
                 "bypass_user_perms": False,
-                "syntax": [],
-                "info": []
+                "syntax": [
+                    "{pre}guild enable",
+                    "<Guild: Snowflake | 'self'>"
+                ],
+                "info": [
+                    "Enables a guild to allow it's users to use the bot. If",
+                    "`self` is given as second argument, it will enable the",
+                    "guild that the command is being ran from."
+                ]
+            },
+            "disable": {
+                "allow_DMs": True,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}guild disable",
+                    "<Guild: Snowflake | 'self'>"
+                ],
+                "info": [
+                    "Disables a guild to allow it's users to use the bot. If",
+                    "`self` is given as second argument, it will disable the",
+                    "guild that the command is being ran from."
+                ]
+            },
+            "list": {
+                "allow_DMs": True,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": 4,
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}guild list",
+                    "[Start: Integer]",
+                    "[Stop: Integer]"
+                ],
+                "info": [
+                    "Lists all guilds the bot is in and whether or not the",
+                    "guild is enabled within the bot. If enabled, the guild",
+                    "entry in the list will be green, if not enabled, it will",
+                    "be red. If both arguments are not specified, `Start`",
+                    "becomes the `Stop` argument."
+                ]
+            },
+            "leave": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 3,
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}guild leave",
+                    "<Guild: Snowflake | 'Self'>"
+                ],
+                "info": [
+                    "Has the bot leave a guild, if the guild is an admin",
+                    "or emoji guild, it cannot be left through the use",
+                    "of this command"
+                ]
             }
         }
     }
@@ -135,21 +272,21 @@ class GlobalAdministration(Plugin):
     def plugin_disable(self, event):
 
 
-        #argument checking
+        # Argument checking
         if len(event.args) < 2:
             return event.msg.reply(GlobalAdmin.nea)
         guild_id = event.args[0]
         plugin = event.args[1]
 
-        #is using "self" argument?
+        # Is using "self" argument?
         if guild_id.lower() == "self":
             if event.guild:
-                guild_id = str(event.msg.guild.id)
+                guild_id = str(event.guild.id)
             else:
                 return event.msg.reply(GlobalAdmin.arg.format(guild_id))
 
-        #ensure the plugin exists
-        if plugin not in self.bot.plugins.keys():
+        # Ensure the plugin exists
+        if plugin not in self.bot.plugins:
             return event.msg.reply(
                 GlobalAdmin.invalid_plugin.format(
                     plugin
@@ -157,33 +294,40 @@ class GlobalAdministration(Plugin):
             )
         plugin = self.bot.plugins[plugin]
 
-        #ensure the plugin is allowed to be enabled
+        # Ensure the plugin is enabled so we can disable it
         if not plugin.can_be_enabled:
             return event.msg.reply(
                 GlobalAdmin.cannot_be_enabled.format(
-                    plugin
+                    plugin.name
                 )
             )
 
         config = PluginConfig.load("guild_list")
 
-        #plugin enabled?
-        if plugin in config[guild_id]:
-            config[guild_id].remove(plugin)
+        # Ensure guild is enabled
+        if guild_id not in config:
+            return event.msg.reply(
+                GlobalAdmin.guild_not_enabled.format(guild_id)
+            )
+
+        # Plugin enabled?
+        if plugin.name in config[guild_id]:
+
+            config[guild_id].remove(plugin.name)
             event.msg.reply(
                 GlobalAdmin.removed_plugin.format(
-                    plugin,
+                    plugin.name,
                     guild_id
                 )
             )
-            #update file
+            # Update file
             PluginConfig.write("guild_list", config)
         else:
-            #acknowledge error
+            # Acknowledge error
             event.msg.reply(
                 GlobalAdmin.plugin_not_enabled.format(
-                    guild_id,
-                    plugin
+                    plugin.name,
+                    guild_id
                 )
             )
 
@@ -356,36 +500,37 @@ class GlobalAdministration(Plugin):
     def guild_list(self, event):
 
 
-        #loading the guild list
+        # Loading the guild list
         guild_list = PluginConfig.load("guild_list")
 
-        #convert arguments if given
+
+        # Convert arguments if given
         try:
-            #end only
+            # End only
             if len(event.args) == 1:
                 start = 0
                 end = int(event.args[0])
             
-            #both
+            # Both
             elif len(event.args) == 2:
                 start = int(event.args[0])
                 end = int(event.args[1])
 
-            #no arguments given
+            # No arguments given
             else:
                 start = 0
                 end = len(guild_list)
 
-        #invalid integer given
+        # Invalid integer given
         except ValueError:
             return event.msg.reply(GlobalAdmin.invalid_int)
 
 
-        #Ensure start is not greater than end
+        # Ensure start is not greater than end
         if (start - end) > 0:
             return event.msg.reply(GlobalAdmin.error)
 
-        #Start == end (meaning no guilds to list)
+        # Start == end (meaning no guilds to list)
         elif (start - end) == 0:
             return event.msg.reply(
                 GlobalAdmin.no_list_zero.format(
@@ -393,7 +538,8 @@ class GlobalAdministration(Plugin):
                 )
             )
 
-        #Ensure user's "start" is lower than highest index
+
+        # Ensure user's "start" is lower than highest index
         if start > (len(guild_list) - 1):
             return event.msg.reply(
                 GlobalAdmin.start_too_big.format(
@@ -401,13 +547,36 @@ class GlobalAdministration(Plugin):
                 )
             )
 
+        guilds = []
+        # Cycle through all guilds bot has loaded
+        for guild in self.state.guilds:
+            guild = self.state.guilds[guild]
+            if str(guild.id) in guild_list:
+                enabled = "+"
+            else:
+                enabled = "-"
+            guilds.append(
+                "{e} {g.name} ({g.id})".format(
+                    e=enabled,
+                    g=guild
+                )
+            )
+
+
         response = GlobalAdmin.guild_list.format(
-            ", ".join(list(guild_list.keys())[start:end])
+            "\n".join(list(guilds)[start:end])
         )
 
-        #Ensure message length
+
+        # Ensure message length
         if len(response) > 2000:
             return event.msg.reply(GlobalAdmin.message_too_long)
 
-        #acknowledge
+        # Acknowledge
         event.msg.reply(response)
+
+
+
+    @Plugin.command("leave", group="guild")
+    def leave_guild(self, event):
+        pass
