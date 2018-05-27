@@ -2,7 +2,6 @@ import json
 
 from data.types.bot.exceptions import PluginError
 
-from data.types.discord.logger import Log
 
 from os import listdir
 
