@@ -9,7 +9,10 @@
     },
     "list": {}
   },
+  "restricted": true,
+  "allow_dev": false,
   "permissions": {
+    "bypass_user_perms": false,
     "admin": {
       "names": [
         "Admin"
