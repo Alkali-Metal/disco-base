@@ -2,13 +2,10 @@ import json
 from datetime import date
 
 
-year = date.year
-month = date.month
-day = date.day
 path = "data/blacklist.json"
 
 
-class Blacklist(object):
+class Blacklist():
     def load():
         with open(path, 'r') as file:
             data = json.load(file)
@@ -63,27 +60,57 @@ class Blacklist(object):
     class Add:
         def user(entity, user, reason=None):
             data = Blacklist.load()
-            data["users"][entity] = {"reason":reason,
-                                     "by": user,
-                                     "on": "{}/{}/{}".format(year, month, day)}
+
+            # Get date
+            year = date.year
+            month = date.month
+            day = date.day
+
+            # Add entitiy to blacklist
+            data["users"][entity] = {
+                "reason":reason,
+                "by": user,
+                "on": "{}/{}/{}".format(year, month, day)
+            }
+
             Blacklist.write(data)
 
 
         def channel(entity, user, reason=None):
             data = Blacklist.load()
-            data["channels"][entity] = {"reason":reason,
-                                        "by": user,
-                                        "on": "{}/{}/{}".format(year,
-                                                                month,
-                                                                day)}
+
+            # Get date
+            year = date.year
+            month = date.month
+            day = date.day
+
+            # Add entity            
+            data["channels"][entity] = {
+                "reason":reason,
+                "by": user,
+                "on": "{}/{}/{}".format(
+                    year,
+                    month,
+                    day
+                )
+            }
             Blacklist.write(data)
 
 
         def guild(entity, user, reason=None):
             data = Blacklist.load()
-            data["guilds"][entity] = {"reason":reason,
-                                      "by": user,
-                                      "on": "{}/{}/{}".format(year, month, day)}
+
+            # Get date
+            year = date.year
+            month = date.month
+            day = date.day
+
+            # Add entity
+            data["guilds"][entity] = {
+                "reason":reason,
+                "by": user,
+                "on": "{}/{}/{}".format(year, month, day)
+            }
             Blacklist.write(data)
 
 
