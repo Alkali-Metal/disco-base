@@ -1,10 +1,51 @@
+"""
+Commands that allow global administrators to adminstrate the guilds and plugins
+of the bot.
+"""
 # BOT IMPORTS:
 from data.types.bot.plugin_config import PluginConfig
+from data.types.bot.permissions import Perms
 from data.types.bot.config import Config
 from data.response import GlobalAdmin
+from data.constants import perm_ints
 
 # DISCO IMPORTS:
 from disco.bot import Plugin
+
+
+
+def filter_plugins(plugins, guild_plugins):
+    response = ""
+
+    # Cycle through all plugins in bot
+    for plugin in plugins:
+
+        # Ensure the plugin can actually be enabled
+        if plugin.can_be_enabled:
+
+            # Check if the guild has it enabled
+            if plugin.name in guild_plugins:
+                response = "{}\n+ {} V{}".format(
+                    response,
+                    plugin.name,
+                    plugin.plugin_version
+                )
+            else:
+                response = "{}\n- {} V{}".format(
+                    response,
+                    plugin.name,
+                    plugin.plugin_version
+                )
+
+            # Check if plugin is in development
+            if plugin.in_dev:
+                response = response + " DEV"
+
+            # Check if plugin is restricted
+            if plugin.restricted:
+                response = response + " (Restricted)"
+    
+    return response
 
 
 
@@ -32,7 +73,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}plugin enable",
@@ -49,7 +90,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}plugin disable",
@@ -66,7 +107,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 2,
+                "default_level": perm_ints["server_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}plugin list",
@@ -84,7 +125,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}plugin install",
@@ -100,7 +141,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}plugin delete",
@@ -115,7 +156,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [],
                 "info": []
@@ -124,7 +165,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [],
                 "info": []
@@ -135,7 +176,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild enable",
@@ -151,7 +192,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild disable",
@@ -167,7 +208,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 4,
+                "default_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild list",
@@ -186,7 +227,7 @@ class GlobalAdministration(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": 3,
+                "default_level": perm_ints["server_mod"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild leave",
@@ -202,6 +243,30 @@ class GlobalAdministration(Plugin):
     }
     #=======================================#
 
+
+
+#=============================================================================#
+# FUNCTIONS:
+
+def convert_guild_self(arg, msg):
+
+    # Is using "self" argument?
+    if guild_id.lower() == "self":
+
+        # Ensure a guild exists
+        if msg.guild:
+            guild_id = str(msg.guild.id)
+
+        # Error if no guild present
+        else:
+            return msg.reply(GlobalAdmin.arg.format(guild_id))
+    
+    # Return what we were given
+    return arg
+
+
+
+
 #=============================================================================#
 # COMMANDS:
 
@@ -211,24 +276,14 @@ class GlobalAdministration(Plugin):
 
 
 
-        #argument checking
+        # Argument checking
         if len(event.args) < 2:
             return event.msg.reply(GlobalAdmin.nea)
-        guild_id = event.args[0]
+        guild_id = convert_guild_self(guild_id, event.msg)
         plugin = event.args[1]
 
 
-        #is using "self" argument?
-        if guild_id.lower() == "self":
-
-            # Ensure a guild exists
-            if event.guild:
-                guild_id = str(event.msg.guild.id)
-            else:
-                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
-
-
-        #ensure the plugin exists
+        # Ensure the plugin exists
         if plugin not in self.bot.plugins.keys():
 
             return event.msg.reply(
@@ -239,7 +294,7 @@ class GlobalAdministration(Plugin):
         else:
             plugin = self.bot.plugins[plugin]
 
-        #ensure the plugin is allowed to be enabled
+        # Ensure the plugin is allowed to be enabled
         if not plugin.can_be_enabled:
             return event.msg.reply(
                 GlobalAdmin.cannot_be_enabled.format(
@@ -249,7 +304,7 @@ class GlobalAdministration(Plugin):
 
         config = PluginConfig.load("guild_list")
 
-        #plugin enabled already?
+        # Plugin enabled already?
         if plugin.name not in config[guild_id]:
             config[guild_id].append(plugin.name)
             PluginConfig.write("guild_list", config)
@@ -277,15 +332,9 @@ class GlobalAdministration(Plugin):
         # Argument checking
         if len(event.args) < 2:
             return event.msg.reply(GlobalAdmin.nea)
-        guild_id = event.args[0]
+        guild_id = convert_guild_self(guild_id, event.msg)
         plugin = event.args[1]
 
-        # Is using "self" argument?
-        if guild_id.lower() == "self":
-            if event.guild:
-                guild_id = str(event.guild.id)
-            else:
-                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
 
         # Ensure the plugin exists
         if plugin not in self.bot.plugins:
@@ -296,6 +345,7 @@ class GlobalAdministration(Plugin):
             )
         plugin = self.bot.plugins[plugin]
 
+
         # Ensure the plugin is enabled so we can disable it
         if not plugin.can_be_enabled:
             return event.msg.reply(
@@ -304,13 +354,16 @@ class GlobalAdministration(Plugin):
                 )
             )
 
+
         config = PluginConfig.load("guild_list")
+
 
         # Ensure guild is enabled
         if guild_id not in config:
             return event.msg.reply(
                 GlobalAdmin.guild_not_enabled.format(guild_id)
             )
+
 
         # Plugin enabled?
         if plugin.name in config[guild_id]:
@@ -322,9 +375,12 @@ class GlobalAdministration(Plugin):
                     guild_id
                 )
             )
+
             # Update file
             PluginConfig.write("guild_list", config)
+
         else:
+
             # Acknowledge error
             event.msg.reply(
                 GlobalAdmin.plugin_not_enabled.format(
@@ -339,52 +395,44 @@ class GlobalAdministration(Plugin):
     def plugin_list(self, event):
 
 
-        #ensure the user supplies at least one argument
+        # Ensure the user supplies at least one argument
         if len(event.args) < 1:
             return event.msg.reply(GlobalAdmin.nea)
-        
-        #check if the guild_id is self
-        if event.args[0].lower() == "self":
-            if event.guild:
-                guild_id = str(event.msg.guild.id)
-            else:
-                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
-        else:
-            guild_id = event.args[0]
+        guild_id = convert_guild_self(event.args[0], event.msg)
 
 
         try:
-            #loading the guild's plugins
+            # Loading the guild's plugins
             plugins = PluginConfig.load("guild_list")[guild_id]
         except KeyError:
             return event.msg.reply(GlobalAdmin.invalid_arg.format(guild_id))
 
 
-        #convert arguments if given
+        # Convert arguments if given
         try:
-            #end only
+            # End only
             if len(event.args) == 2:
                 start = 0
                 end = int(event.args[1])
 
-            #both
+            # Both
             elif len(event.args) == 3:
                 start = int(event.args[1])
                 end = int(event.args[2])
 
-            #no arguments given
+            # No arguments given
             else:
                 start = 0
                 end = len(plugins)
 
-        #invalid integer given
+        # Invalid integer given
         except ValueError:
             return event.msg.reply(GlobalAdmin.invalid_int)
 
-        #Ensure start is not greater than end
+        # Ensure start is not greater than end
         if (start - end) > 0:
             return event.msg.reply(GlobalAdmin.error)
-        #Start == end (meaning no plugins to list)
+        # Start == end (meaning no plugins to list)
         elif (start - end) == 0:
             return event.msg.reply(
                 GlobalAdmin.no_list_zero.format(
@@ -392,7 +440,7 @@ class GlobalAdministration(Plugin):
                 )
             )
 
-        #Ensure user's "start" is lower than highest index
+        # Ensure user's "start" is lower than highest index
         if start > (len(plugins) - 1):
             return event.msg.reply(
                 GlobalAdmin.start_too_big.format(
@@ -405,11 +453,11 @@ class GlobalAdministration(Plugin):
             ", ".join(plugins[start:end])
         )
 
-        #Ensure message length
+        # Ensure message length
         if len(response) > 2000:
             return event.msg.reply(GlobalAdmin.message_too_long)
 
-        #acknowledge
+        # Acknowledge
         event.msg.reply(response)
 
 
@@ -420,20 +468,13 @@ class GlobalAdministration(Plugin):
 
         guild_list = PluginConfig.load("guild_list")
 
-        #check if arguments used
-        if len(event.args) >= 1:
-            guild_id = event.args[0]
-        else:
-            if event.guild:
-                guild_id = str(event.guild.id)
-            else:
-                return event.msg.reply(GlobalAdmin.nea)
-        
-        #"self" argument used
-        if guild_id.lower() == "self":
-            guild_id = str(event.msg.guild.id)
+        # Check if arguments used
+        if len(event.args) < 1:
+            return event.msg.reply(GlobalAdmin.nea)
+        guild_id = convert_guild_self(event.args[0], event.msg)
 
-        #ensure guild not enabled
+
+        # Ensure guild not enabled
         if guild_id in guild_list.keys():
             return event.msg.reply(
                 GlobalAdmin.guild_already_enabled.format(
@@ -441,7 +482,7 @@ class GlobalAdministration(Plugin):
                 )
             )
 
-        #Add guild to file
+        # Add guild to file
         try:
             guild_list[guild_id] = []
             PluginConfig.write("guild_list", guild_list)
@@ -462,20 +503,13 @@ class GlobalAdministration(Plugin):
 
         guild_list = PluginConfig.load("guild_list")
 
-        #check if arguments used
-        if len(event.args) >= 1:
-            guild_id = event.args[0]
-        else:
+        # Check if arguments used
+        if len(event.args) < 1:
             return event.msg.reply(GlobalAdmin.nea)
-        
-        #"self" argument used
-        if guild_id.lower() == "self":
-            if event.guild:
-                guild_id = str(event.msg.guild.id)
-            else:
-                return event.msg.reply(GlobalAdmin.arg.format(guild_id))
+        guild_id = convert_guild_self(event.args[0], event.msg)
 
-        #ensure guild not enabled
+
+        # Ensure guild not enabled
         if guild_id not in guild_list.keys():
             return event.msg.reply(
                 GlobalAdmin.guild_not_enabled.format(
@@ -483,7 +517,7 @@ class GlobalAdministration(Plugin):
                 )
             )
 
-        #Add guild to file
+        # Add guild to file
         try:
             guild_list.pop(guild_id)
             PluginConfig.write("guild_list", guild_list)
@@ -500,10 +534,6 @@ class GlobalAdministration(Plugin):
 
     @Plugin.command("list", group="guild")
     def guild_list(self, event):
-
-
-        # Loading the guild list
-        guild_list = PluginConfig.load("guild_list")
 
 
         # Convert arguments if given
@@ -549,6 +579,11 @@ class GlobalAdministration(Plugin):
                 )
             )
 
+
+        # Loading the guild list
+        guild_list = PluginConfig.load("guild_list")
+
+
         guilds = []
         # Cycle through all guilds bot has loaded
         for guild in self.state.guilds:
@@ -581,4 +616,42 @@ class GlobalAdministration(Plugin):
 
     @Plugin.command("leave", group="guild")
     def leave_guild(self, event):
-        pass
+
+        # Check for argument
+        if event.args:
+
+            # Ensure user is guild owner or admin
+            if Perms.integer(event.msg.member) < perm_ints["global_admin"]:
+                return event.msg.reply(GlobalAdmin.invalid_perms)
+
+            guild_id = int(event.args[0])
+
+            # Ensure guild ID in state
+            if guild_id not in self.state.guilds:
+                return event.msg.guild(
+                    GlobalAdmin.invalid_arg.format(guild_id)
+                )
+            
+            # Ensure guild isn't an admin guild:
+            if guild_id not in Config.load()["admin"]["guilds"]:
+                self.state.guilds[guild_id].leave()
+            else:
+                return event.msg.reply(GlobalAdmin.cannot_leave)
+        
+        else:
+
+            # Ensure guild
+            if not event.guild:
+                return event.msg.reply(
+                    GlobalAdmin.no_DMs
+                )
+
+            # Ensure user is guild owner or admin
+            if Perms.integer(event.msg.member) < perm_ints["server_admin"]:
+                return event.msg.reply(GlobalAdmin.invalid_perms)
+
+            # Ensure guild isn't an admin guild:
+            if event.guild.id not in Config.load()["admin"]["guilds"]:
+                self.state.guilds[guild_id].leave()
+            else:
+                return event.msg.reply(GlobalAdmin.cannot_leave)
