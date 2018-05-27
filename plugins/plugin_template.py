@@ -1,5 +1,5 @@
 # BOT IMPORTS:
-
+from data.constants import (perm_ints)
 
 # DISCO IMPORTS:
 from disco.bot import Plugin
