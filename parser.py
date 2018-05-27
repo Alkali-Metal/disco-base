@@ -246,8 +246,11 @@ class MessageParser(Plugin):
             # Ensure that we are not attempting to run an indev plugin from a
             #  production bot.
 
+            config = Config.load()
+
             # Ensure environment is production, in dev we want to allow all
-            if config["do_not_change"]["env"] == "prod":
+            env = config["do_not_change"]["env"]
+            if env in ["prod", "testing"]:
 
                 # Ensure plugin is not in dev
                 if plugin.in_dev:
@@ -301,7 +304,11 @@ class MessageParser(Plugin):
                 config = GuildConfig.load(event.message.guild.id)
 
                 # Check if the plugin and guild are restricted then deny if so
-                if (config["restricted"] and plugin.restricted):
+                if (
+                    (config["restricted"] and plugin.restricted)
+                    and
+                    (env == "prod")
+                ):
                     return event.message.reply(Parser.restricted)
 
 
