@@ -5,9 +5,11 @@ permission level from the tag itself.
 """
 
 # BOT IMPORTS:
-from data.constants import (discord_permission_values,
-                            max_permission_int,
-                            perm_ints)
+from data.constants import (
+    discord_permission_values,
+    max_permission_int,
+    perm_ints
+)
 from data.types.bot.plugin_config import PluginConfig
 from data.types.bot.guild_config import GuildConfig
 from data.constants import bool_true, bool_false
@@ -284,7 +286,7 @@ class CustomCommands(Plugin):
                 "allow_DMs": False,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 0,
+                "default_level": perm_ints["server_mod"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}tag add",
@@ -308,7 +310,7 @@ class CustomCommands(Plugin):
                 "allow_DMs": False,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 0,
+                "default_level": perm_ints["server_mod"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}tag remove",
@@ -328,7 +330,7 @@ class CustomCommands(Plugin):
                 "allow_DMs": False,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 0,
+                "default_level": perm_ints["server_mod"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}tag modify",
@@ -340,13 +342,32 @@ class CustomCommands(Plugin):
                     "is `name` all other fields for this command are ",
                     "optional. Valid fields and types are as follows:",
                     "`name` (String), `response` (String), `embed` (Boolean),",
-                    "`colour` (Hex code), `footer` (String), `level` (Integer)",
+                    "`colour` (Hex code), `footer` (String), `level` (Integer",
+                    "<= `{max_perm_int}`)",
                     ", `content` (String), `url` (String), `title` (String),",
                     "`global` (Boolean). For a description of each of these",
                     "fields you can read the documentation more in-depth",
                     "[here](http://discord-bots.rtfd.io/en/latest/plugins/&",
                     "&Tags/#options-list)"
                 ]
+            },
+            "list": {
+                "allow_DMs": False,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": perm_ints["server_mod"],
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
+            },
+            "setup": {
+                "allow_DMs": False,
+                "bot_perms": 2048,
+                "user_perms": 0,
+                "default_level": perm_ints["server_mod"],
+                "bypass_user_perms": False,
+                "syntax": [],
+                "info": []
             }
         }
     }
