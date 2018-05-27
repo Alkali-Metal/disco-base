@@ -59,6 +59,8 @@ class GlobalAdmin:
     invalid_plugins = "The following plugins are invalid: ```\n{}\n```"
     didnt_reload_plugins = "The following plugins cannot be reloaded: ```\n{}\n```"
     reload_too_long = "The response was too long, but the task complete"
+    cannot_leave = redtick + ": Cannot leave an admin level guild."
+    no_DMs = redtick + ": Cannot leave a guild from DMs without the ID."
 
 
 
