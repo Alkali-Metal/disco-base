@@ -1,8 +1,16 @@
+# A mapping of all custom emojis that the bot will use on a regular basis for
+#  built-in  command responses. (Tags are excluded here)
 custom_emojis = {
+
+    # Red "X" and Green Check mark
     "red_tick": "<:redtick:359072372789215232>",
     "green_tick": "<:greentick:359072286466244609>",
+
+    # Red "-1" and Green "+1"
     "-1": "<:decrease:363848504990367744>",
     "+1": "<:increase:363848505024053248>",
+
+    # Yellow and red Exclamation mark
     "yellow_exclaim": "<:report:383406481162371072>",
     "red_exclaim": "<:reported:383406480939941889>"
 }
