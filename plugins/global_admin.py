@@ -13,6 +13,26 @@ from data.constants import perm_ints
 from disco.bot import Plugin
 
 
+#=============================================================================#
+# FUNCTIONS:
+
+def convert_guild_self(arg, msg):
+
+    # Is using "self" argument?
+    if arg.lower() == "self":
+
+        # Ensure a guild exists
+        if msg.guild:
+            guild_id = str(msg.guild.id)
+
+        # Error if no guild present
+        else:
+            return msg.reply(GlobalAdmin.arg.format(guild_id))
+    
+    # Return what we were given
+    return arg
+
+
 
 def filter_plugins(plugins, guild_plugins):
     response = ""
@@ -48,6 +68,9 @@ def filter_plugins(plugins, guild_plugins):
     return response
 
 
+
+#=============================================================================#
+# PLUGIN INITIALIZATION & CONFIGURATION:
 
 class GlobalAdministration(Plugin):
 
@@ -239,32 +262,94 @@ class GlobalAdministration(Plugin):
                     "of this command"
                 ]
             }
+        },
+        "blacklist": {
+            "add": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": perm_ints["global_admin"],
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}blacklist add",
+                    "<Type: 'Guild' | 'Channel' | 'User'>",
+                    "<Entity: Mention | Snowflake>",
+                    "[Reason...: String]"
+                ],
+                "info": [
+                    "Adds the specified entity to the blacklist with the",
+                    "given reason."
+                ]
+            },
+            "remove": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": perm_ints["global_admin"],
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}blacklist remove",
+                    "<Type: 'Guild' | 'Channel' | 'User'>",
+                    "<Entity: Mention | Snowflake>"
+                ],
+                "info": [
+                    "Removes the entity from the specified blacklist."
+                ]
+            },
+            "info": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": perm_ints["global_admin"],
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}blacklist info",
+                    "<Entity: Mention | Snowflake>",
+                    "[Type: 'Guild' | 'Channel' | 'User']"
+                ],
+                "info": [
+                    "Returns the information of the blacklisted entity, of",
+                    "which includes, whom blacklisted it, when it was added",
+                    "and the reason as to why it was blacklisted"
+                ]
+            },
+            "list": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": perm_ints["global_admin"],
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}blacklist list",
+                    "<Type: 'Guild' | 'Channel' | 'User'>",
+                    "[<Start: Integer>",
+                    "<Stop: Integer>]"
+                ],
+                "info": [
+                    "Displays a list of blacklisted entities within the given",
+                    "blacklist type. To display certain ones, `Start` and",
+                    "`Stop` must both be given otherwise the command will",
+                    "error."
+                ]
+            },
+            "reset": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": perm_ints["bot_creator"],
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}blacklist reset",
+                    "[Type: 'Guild' | 'Channel' | 'User']"
+                ],
+                "info": [
+                    "Resets the specified blacklist, if not given,",
+                    "will reset all blacklists."
+                ]
+            }
         }
     }
     #=======================================#
-
-
-
-#=============================================================================#
-# FUNCTIONS:
-
-def convert_guild_self(arg, msg):
-
-    # Is using "self" argument?
-    if guild_id.lower() == "self":
-
-        # Ensure a guild exists
-        if msg.guild:
-            guild_id = str(msg.guild.id)
-
-        # Error if no guild present
-        else:
-            return msg.reply(GlobalAdmin.arg.format(guild_id))
-    
-    # Return what we were given
-    return arg
-
-
 
 
 #=============================================================================#
@@ -429,6 +514,7 @@ def convert_guild_self(arg, msg):
         except ValueError:
             return event.msg.reply(GlobalAdmin.invalid_int)
 
+
         # Ensure start is not greater than end
         if (start - end) > 0:
             return event.msg.reply(GlobalAdmin.error)
@@ -458,7 +544,7 @@ def convert_guild_self(arg, msg):
             return event.msg.reply(GlobalAdmin.message_too_long)
 
         # Acknowledge
-        event.msg.reply(response)
+        return event.msg.reply(response)
 
 
 
