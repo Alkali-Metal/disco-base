@@ -1,11 +1,19 @@
 """
-Utility commands that don't really belong in any other plugin that deal with
-the backend of the bot. As well as the commands used to edit the guild's
-configuration
+Utility commands that don't really belong in any other specific plugin that
+deal with the bot backend in some way or provides some sort of information
+to the user that they would not be able to access elsewise, like command help
+and plugin descriptions which both are never usually visible to the user unless
+we expose it to them somewhere. Which would normally be in this plugin.
 """
+
 # BOT IMPORTS:
+from data.constants import (
+    discord_permission_values,
+    max_permission_int,
+    custom_emojis,
+    perm_ints
+)
 from data.types.bot.plugin_config import PluginConfig
-from data.constants import discord_permission_values
 from data.types.bot.guild_config import GuildConfig
 from data.types.bot.permissions import Perms
 from data.types.bot.config import Config
@@ -21,14 +29,6 @@ from disco.bot import Plugin
 
 
 
-# Pre-define config options that are always going to exist.
-valid_settings = {
-    "mod_role_ids": "permissions|mod|IDs",
-    "mod_role_names": "permissions|mod|names",
-    "admin_role_ids": "permissions|admin|IDs",
-    "admin_role_names": "permissions|admin|names",
-    "cmd_perms": "cmd lvls"
-}
 
 cmd_list = {}
 
@@ -66,11 +66,17 @@ def filter_perms(member_value, target_value):
 
 
 
+#=============================================================================#
+# PLUGIN INITIALIZATION & CONFIGURATION:
+
+
 class Utility(Plugin):
 
     #=======================================#
     # PLUGIN INFORMATION FOR PARSER:
+    in_dev = True
     can_reload = True
+    restricted = False
     force_default = False
     bypass_enabled = False
     can_be_enabled = True
@@ -88,7 +94,7 @@ class Utility(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": 0,
+                "default_level": perm_ints["else"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}util level",
@@ -103,7 +109,7 @@ class Utility(Plugin):
                 "allow_DMs": False,
                 "bot_perms": 2048,
                 "user_perms": 268435456,
-                "default_level": 1,
+                "default_level": perm_ints["server_mod"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}util roles"
@@ -119,7 +125,7 @@ class Utility(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 18432,
                 "user_perms": 0,
-                "default_level": 0,
+                "default_level": perm_ints["else"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}info cmd",
@@ -134,7 +140,7 @@ class Utility(Plugin):
                 "allow_DMs": True,
                 "bot_perms": 18432,
                 "user_perms": 0,
-                "default_level": 0,
+                "default_level": perm_ints["server_mod"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}info cmd",
@@ -181,16 +187,18 @@ class Utility(Plugin):
     def perm_bar_command(self, event):
 
         # Check if they supplied an argument for the perm level
-        if len(event.msg.mentions):
+        if len(event.msg.mentions): # Mentioned a user
             for k, v in event.msg.mentions.items():
                 user = v
                 break
-        elif len(event.args):
+
+        elif len(event.args): #Supplied an ID/name
             if event.guild:
                 user = event.guild.get_member(event.args[0])
             else:
                 return event.msg.reply(Invalid.argument.format(event.args[0]))
-        else:
+
+        else: # Didn't supply an argument, use the author
             if event.msg.guild:
                 user = event.msg.member
             else:
@@ -199,7 +207,7 @@ class Utility(Plugin):
 
         # Acknowledge
         if isinstance(user, GuildMember):
-            event.msg.reply(
+            return event.msg.reply(
                 Util.level.format(
                     user.name,
                     Perms.permission_bar(
@@ -208,7 +216,7 @@ class Utility(Plugin):
                 )
             )
         elif isinstance(user, User):
-            event.msg.reply(
+            return event.msg.reply(
                 Util.level.format(
                     user.username,
                     Perms.permission_bar(
@@ -217,7 +225,7 @@ class Utility(Plugin):
                 )
             )
         else:
-            event.msg.reply(
+            return event.msg.reply(
                 Util.error
             )
 
@@ -227,7 +235,7 @@ class Utility(Plugin):
     def role_list_getter(self, event):
         filtered = Role.filter_by_index(event.msg.guild.roles)
 
-        event.msg.reply(
+        return event.msg.reply(
             "```\n" + filtered["response"] +
             "```\n\nTotal iterations: " + str(filtered["iter_count"])
         )
@@ -283,13 +291,16 @@ class Utility(Plugin):
             # Ensure guild has been enabled
             if g_id in guilds:
 
-                # Check if the plugin is not enabled
-                if cmd.plugin.name not in guilds[g_id]:
-                    return event.msg.reply(
-                        Util.plugin_not_enabled.format(
-                            cmd.plugin.name
+                # Ensure the plugin doesn't bypass enabled
+                if not cmd.plugin.bypass_enabled:
+
+                    # Check if the plugin is not enabled
+                    if cmd.plugin.name not in guilds[g_id]:
+                        return event.msg.reply(
+                            Util.plugin_not_enabled.format(
+                                cmd.plugin.name
+                            )
                         )
-                    )
 
 
         # Get command data
@@ -336,14 +347,26 @@ class Utility(Plugin):
         cmd_aliases.remove(cmd.name)
 
         variables = {
+
+            # Constants or config values
             "pre": Config.load()["bot"]["commands_prefix"],
+            "max_perm_int": max_perm_int,
+            "perm_levels": perm_ints,
+            "emoji": custom_emojis,
+
+            # User variables
+            "user_discrim": event.msg.author.discriminator,
             "user_username": event.msg.author.username,
             "user_nickname": event.msg.member.name,
-            "user_discrim": event.msg.author.discriminator,
             "user_id": event.msg.author.id,
-            "bot_username": me.username,
+
+            # Bot variables
             "bot_nickname": me_member.name,
+            "bot_username": me.username,
             "bot_id": me.id,
+
+            # Miscellanious information we may want to display
+            "cmd_total": len(plugin.cmds),  #TODO: Make this works
             "plg_name": plugin.name
         }
 
@@ -459,50 +482,3 @@ class Utility(Plugin):
 
         # Respond with the embed
         return event.msg.reply(embed=embed)
-
-
-
-class ConfigEditor(Plugin):
-
-    #=======================================#
-    # PLUGIN INFORMATION FOR PARSER:
-    can_reload = True
-    force_default = False
-    bypass_enabled = False
-    can_be_enabled = True
-    plugin_version = 2.0
-    config_settings = None
-
-    commands_config = {
-        "<GroupName | None>": {
-            "<CommandName>": {
-                "allow_DMs": True,
-                "bot_perms": 0,
-                "user_perms": 0,
-                "default_level": 0
-            }
-        }
-    }
-    #=======================================#
-
-    # Instatiation function
-    def init(self):
-
-        # Cycle through loaded plugins retrieving their settings
-        for plugin in self.bot.plugins:
-
-            # Ensure plugin actually has config options for 
-            if plugin.config_settings != None:
-                plugin = self.bot.plugins[plugin]
-                settings = plugin.config_settings
-
-                # Cycle through settings adding them to the dict
-                for setting in settings:
-                    valid_settings[setting] = settings[setting]
-
-
-
-    @Plugin.command("edit", group="config")
-    def edit_config(self, event):
-        self.init()
-        event.msg.reply("```json\n{}```".format(json.dumps(valid_settings, indent=2)))
