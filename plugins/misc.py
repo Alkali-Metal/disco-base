@@ -27,7 +27,7 @@ class Misc(Plugin):
         "None": {
             "test": {
                 "allow_DMs": True,
-                "bot_perms": 2048,
+                "bot_perms": 0,
                 "user_perms": 0,
                 "default_level": 0,
                 "bypass_user_perms": False,
@@ -38,13 +38,40 @@ class Misc(Plugin):
                     "Tests to ensure the bot is online."
                 ]
             }
+        },
+        "emoji": {
+            "jumbo": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": 0,
+                "bypass_user_perms": False,
+                "syntax": [
+                    "{pre}emoji jumbo",
+                    "<Emoji: emoji>"
+                ],
+                "info": [
+                    "Enlarges an emoji."
+                ]
+            }
         }
     }
     #=======================================#
 
 
 
+#=============================================================================#
+# COMMANDS:
+
+
+
     @Plugin.command("test")
     def test_command(self, event):
 
-        event.msg.reply(MiscResponse.test_confirmed)
+        return event.msg.reply(MiscResponse.test_confirmed)
+
+
+
+    @Plugin.command("jumbo", group="emoji", aliases=["enlarge", "big"])
+    def emoji_jumbo(self, event):
+        return event.msg.reply("Command has not yet been implemented.")
