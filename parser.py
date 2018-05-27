@@ -72,9 +72,11 @@ class MessageParser(Plugin):
 
     #=======================================#
     # PLUGIN INFORMATION FOR PARSER:
+    in_dev = False
     can_reload = False
-    force_default = False
-    bypass_enabled = False
+    restricted = False
+    force_default = True
+    bypass_enabled = True
     can_be_enabled = False
     plugin_version = 4.1
     config_settings = None
@@ -241,6 +243,23 @@ class MessageParser(Plugin):
 
 
             #-----------------------------------------------------------------#
+            # Ensure that we are not attempting to run an indev plugin from a
+            #  production bot.
+
+            # Ensure environment is production, in dev we want to allow all
+            if config["do_not_change"]["env"] == "prod":
+
+                # Ensure plugin is not in dev
+                if plugin.in_dev:
+
+                    # Ensure guild is not allowing development plugins
+                    if GuildConfig.load(event.message.guild.id)["allow_dev"]:
+                        return event.message.reply(
+                            Parser.plugin_in_dev
+                        )
+
+
+            #-----------------------------------------------------------------#
             # Ensure that we have a guild to work with for permissions,
             #  otherwise use defaults for DMs and ensure command is enabled
             #  in DMs
@@ -275,6 +294,19 @@ class MessageParser(Plugin):
 
 
                 #-------------------------------------------------------------#
+                # Ensure that the plugin isn't restricted and that the guild
+                #  can is also not restricted if the plugin is
+
+                # load guild's configuration
+                config = GuildConfig.load(event.message.guild.id)
+
+                # Check if the plugin and guild are restricted then deny if so
+                if (config["restricted"] and plugin.restricted):
+                    return event.message.reply(Parser.restricted)
+
+
+
+                #-------------------------------------------------------------#
                 # Ensure that the plugin isn't one where we force the default
                 #  configuration on otherwise try to load the guild config,
                 #  and if something goes wrong with the guild config, resort
@@ -285,9 +317,6 @@ class MessageParser(Plugin):
 
                     # get command permission level
                     try:
-
-                        # load guild's configuration
-                        config = GuildConfig.load(event.message.guild.id)
 
 
                         plg_data = config["cmd_lvls"][plugin.name]
@@ -324,6 +353,7 @@ class MessageParser(Plugin):
                 #  do not.
 
                 user_level = Perms.integer(event.message.member)
+
                 if user_level < cmd_level:
                     return event.message.reply(Invalid.permissions)
 

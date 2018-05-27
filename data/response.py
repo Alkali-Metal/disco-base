@@ -17,6 +17,8 @@ class Parser:
     generic_error = redtick + ": Something went wrong. Try again later."
     name_error = "There are {} with that name!"
     not_enough_arguments = redtick + ": Not enough arguments."
+    plugin_in_dev = redtick + ": Cannot run a plugin that is in development in a production bot unless the guild is development enabled."
+    restricted = redtick + ": Cannot run that command as it is from a restricted plugin. Talk to the global admins about having your guild un-restricted."
     docs_url = None
 
 

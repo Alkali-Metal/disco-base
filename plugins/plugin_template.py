@@ -8,13 +8,17 @@ from disco.bot import Plugin
 
 
 
+#=============================================================================#
+# PLUGIN INITIALIZATION & CONFIGURATION:
 
 class PluginName(Plugin):
 
 
     #=======================================#
     # PLUGIN INFORMATION FOR PARSER:
+    in_dev = True
     can_reload = True
+    restricted = False
     force_default = False
     bypass_enabled = False
     can_be_enabled = True

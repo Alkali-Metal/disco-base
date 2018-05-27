@@ -1,14 +1,21 @@
+# BOT IMPORTS
 from data.response import MiscResponse
 
+# DISCO IMPORTS:
 from disco.bot import Plugin
 
+
+#=============================================================================#
+# PLUGIN INITIALIZATION & CONFIGURATION:
 
 
 class Misc(Plugin):
 
     #=======================================#
     # PLUGIN INFORMATION FOR PARSER:
+    in_dev = False
     can_reload = True
+    restricted = True
     force_default = False
     bypass_enabled = False
     can_be_enabled = True

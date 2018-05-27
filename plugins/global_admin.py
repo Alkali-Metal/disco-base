@@ -12,7 +12,9 @@ class GlobalAdministration(Plugin):
 
     #=======================================#
     # PLUGIN INFORMATION FOR PARSER:
+    in_dev = True
     can_reload = True
+    restricted = False
     force_default = True
     bypass_enabled = True
     can_be_enabled = False
