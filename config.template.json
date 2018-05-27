@@ -1,0 +1,46 @@
+{
+  "do_not_change": {
+    "config_version": 2.0,
+    "base_version": 0.1,
+    "env": "prod"
+  },
+
+
+  "token": "",
+
+
+  "admin": {
+    "log": null,
+    "ids":[],
+    "guilds":[]
+  },
+
+
+  "parser": {
+    "respond_to_invalid": false,
+    "blacklist_enabled": false
+  },
+
+
+  "bot": {
+    "commands_enabled": false,
+    "commands_require_mention": false,
+    "commands_allow_edit": true,
+    "commands_prefix": "!",
+    "commands_mention_rules": {
+      "user": true,
+      "role": true,
+      "here": false,
+      "everyone": false
+    },
+    "plugins": [
+      "parser",
+      "plugins.global_admin",
+      "plugins.utility",
+
+      "plugins.misc",
+      "plugins.admin",
+      "plugins.tags"
+    ]
+  }
+}
