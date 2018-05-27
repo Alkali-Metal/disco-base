@@ -6,115 +6,296 @@ greentick = emoji["green_tick"]
 
 
 class Parser:
-    message_too_long = redtick + ": Response too long. Please try something else."
-    guild_not_enabled = redtick + ": This guild is not enabled. Contact a global administrator if you believe this to be an error."
-    not_DM_enabled = redtick + ": This command cannot be ran in a direct message."
-    not_plugin_enabled = redtick + ": This server does not have the `{}` plugin enabled. Contact a global administrator if you believe this to be an error."
+    # A:
     added_plugin = greentick + ": Added plugin `{}` to guild `{}`."
+    # B:
     bot_perm_missing = redtick + ": Command couldn't be executed due to missing permission(s). Run `{}info {}` to see exactly what permissions the bot and you need to run the command."
-    user_perm_missing = redtick + ": Command couldn't be executed due to you missing Discord related permission(s). Run `{}info {}` to see exactly what permissions the bot and you need to run the command."
-    unconfigured = "This server has not been configured for this plugin yet."
+    # C:
+    # D:
+    docs_url = None
+    # E:
+    # F:
+    # G:
     generic_error = redtick + ": Something went wrong. Try again later."
+    guild_not_enabled = redtick + ": This guild is not enabled. Contact a global administrator if you believe this to be an error."
+    # H:
+    # I:
+    # J:
+    # K:
+    # L:
+    # M:
+    message_too_long = redtick + ": Response too long. Please try something else."
+    # N:
     name_error = "There are {} with that name!"
     not_enough_arguments = redtick + ": Not enough arguments."
+    not_DM_enabled = redtick + ": This command cannot be ran in a direct message."
+    not_plugin_enabled = redtick + ": This server does not have the `{}` plugin enabled. Contact a global administrator if you believe this to be an error."
+    # O:
+    # P:
     plugin_in_dev = redtick + ": Cannot run a plugin that is in development in a production bot unless the guild is development enabled."
+    # Q:
+    # R:
     restricted = redtick + ": Cannot run that command as it is from a restricted plugin. Talk to the global admins about having your guild un-restricted."
-    docs_url = None
+    # S:
+    # T:
+    # U:
+    unconfigured = "This server has not been configured for this plugin yet."
+    user_perm_missing = redtick + ": Command couldn't be executed due to you missing Discord related permission(s). Run `{}info {}` to see exactly what permissions the bot and you need to run the command."
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
 
 
 
 class Invalid:
-    int = redtick + ": Invalid integer."
-    string = redtick + ": Invalid string."
-    plugin = redtick + ": Invalid plugin."
-    id = redtick + ": Invalid ID."
-    command = redtick + ": Invalid command."
-    permissions = redtick + ": Invalid permissions."
+    # A:
     argument = redtick + ": Invalid argument. (`{}`)"
-
+    # B:
+    # C:
+    command = redtick + ": Invalid command."
+    # D:
+    # E:
+    # F:
+    # G:
+    # H:
+    # I:
+    id = redtick + ": Invalid ID."
+    int = redtick + ": Invalid integer."
+    # J:
+    # K:
+    # L:
+    # M:
+    # N:
+    # O:
+    # P:
+    permissions = redtick + ": Invalid permissions."
+    plugin = redtick + ": Invalid plugin."
+    # Q:
+    # R:
+    # S:
+    string = redtick + ": Invalid string."
+    # T:
+    # U:
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
 
 
 
 class GlobalAdmin:
-    nea = Parser.not_enough_arguments
-    message_too_long = Parser.message_too_long
+    # A:
+    added_plugin = greentick + ": Added plugin `{}` to guild `{}`."
+    # B:
+    # C:
+    cannot_be_enabled = redtick + ": Plugin `{}` cannot be enabled."
+    cannot_leave = redtick + ": Cannot leave an admin level guild."
+    # D:
+    didnt_reload_plugins = "The following plugins cannot be reloaded: ```\n{}\n```"
+    # E:
+    error = Parser.generic_error
+    # F:
+    # G:
+    guild_already_enabled = redtick + ": Guild `{}` is already enabled."
+    guild_disabled = greentick + ": Guild `{}` has been disabled."
+    guild_enabled = greentick + ": Guild `{}` has been enabled."
+    guild_list = "Guild List: ```diff\n{}\n```"
+    guild_not_enabled = redtick + ": Guild `{}` isn't enabled."
+    # H:
+    # I:
+    invalid_arg = Invalid.argument
     invalid_int = Invalid.int
     invalid_plugin = Invalid.plugin + " (`{}`)"
-    invalid_arg = Invalid.argument
-    cannot_be_enabled = redtick + ": Plugin `{}` cannot be enabled."
-    added_plugin = greentick + ": Added plugin `{}` to guild `{}`."
-    removed_plugin = greentick + ": Removed plugin `{}` from guild `{}`."
+    invalid_plugins = "The following plugins are invalid: ```\n{}\n```"
+    # J:
+    # K:
+    # L:
+    # M:
+    message_too_long = Parser.message_too_long
+    # N:
+    nea = Parser.not_enough_arguments
+    no_DMs = redtick + ": Cannot leave a guild from DMs without the ID."
+    no_list_zero = redtick + ": I cannot list 0 {} to you."
+    # O:
+    # P:
     plugin_list = "Enabled plugins for guild `{}`:\n```{}```"
     plugin_already_enabled = redtick + ": `{}`(guild) already has the `{}` plugin enabled."
     plugin_not_enabled = redtick + ": Cannot disable plugin `{}` that is not enabled in guild `{}`."
-    error = Parser.generic_error
-    no_list_zero = redtick + ": I cannot list 0 {} to you."
-    start_too_big = redtick + ": Initial index too high, start lower. (Max: `{}`)"
-    guild_already_enabled = redtick + ": Guild `{}` is already enabled."
-    guild_not_enabled = redtick + ": Guild `{}` isn't enabled."
-    guild_enabled = greentick + ": Guild `{}` has been enabled."
-    guild_disabled = greentick + ": Guild `{}` has been disabled."
-    guild_list = "Guild List: ```diff\n{}\n```"
+    # Q:
+    # R:
+    removed_plugin = greentick + ": Removed plugin `{}` from guild `{}`."
     reloaded_plugins = "The following plugins have been reloaded: ```\n{}\n```"
-    invalid_plugins = "The following plugins are invalid: ```\n{}\n```"
-    didnt_reload_plugins = "The following plugins cannot be reloaded: ```\n{}\n```"
     reload_too_long = "The response was too long, but the task complete"
-    cannot_leave = redtick + ": Cannot leave an admin level guild."
-    no_DMs = redtick + ": Cannot leave a guild from DMs without the ID."
+    # S:
+    start_too_big = redtick + ": Initial index too high, start lower. (Max: `{}`)"
+    # T:
+    # U:
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
 
 
 
 class Admin:
-    nea = Parser.not_enough_arguments
-    invalid_perms = Invalid.permissions
-    invalid_arg = Invalid.argument
+    # A:
+    already_banned = redtick + ": That user is already banned."
+    # B:
+    ban_error = Parser.generic_error
+    ban_success = greentick + ": {} (`{}`) has been banned with reason: `{}`"
+    ban_success_nameless = greentick + ": User `{}` has been banned with reason: `{}`"
+    # C:
     cant_messages = "Cannot manage messages. Make sure I have the `Manage Messages` permission."
     channel_purged = "Channel (`{}`) has been purged."
-    ban_error = Parser.generic_error
-    no_ban_self = redtick + ": You cannot ban yourself"
-    already_banned = redtick + ": That user is already banned."
-    ban_success = greentick + ": {} (`{}`) has been banned with reason: `{}`"
+    # D:
+    # E:
+    # F:
+    # G:
+    # H:
+    # I:
+    invalid_arg = Invalid.argument
+    invalid_perms = Invalid.permissions
+    # J:
+    # K:
+    # L:
+    # M:
     mass_ban = greentick + ": From a total of `{}` users given.\n\nBanned: `{}`\nAlready Banned: `{}`"
-    ban_success_nameless = greentick + ": User `{}` has been banned with reason: `{}`"
+    # N:
+    nea = Parser.not_enough_arguments
+    no_ban_self = redtick + ": You cannot ban yourself"
+    # O:
+    # P:
+    # Q:
+    # R:
+    # S:
     self_cleaned = greentick + ": Cleaned `{}` messages."
+    # T:
+    # U:
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
 
 
 
 class Blacklist:
-    invalid_perms = Invalid.permissions
-    nea = Parser.not_enough_arguments
+    # A:
     already_blacklisted = "The entity `{}` is already in the specified blacklist with reason: `{}`"
-    not_blacklisted = "The entity `{}` cannot be un-blacklisted as it is not blacklisted."
+    # B:
     blacklisted = "Entity `{}` has been added to the `{}` blacklist with reason: `{}`"
+    # C:
+    # D:
+    # E:
+    # F:
+    # G:
+    # H:
+    # I:
+    invalid_perms = Invalid.permissions
+    # J:
+    # K:
+    # L:
+    # M:
+    # N:
+    nea = Parser.not_enough_arguments
+    not_blacklisted = "The entity `{}` cannot be un-blacklisted as it is not blacklisted."
+    # O:
+    # P:
+    # Q:
+    # R:
+    # S:
+    # T:
+    # U:
     unblacklisted = "Entity `{}` has been removed from the `{}` blacklist."
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
 
 
 
 class Tags:
-    nea = Parser.not_enough_arguments
+    # A:
+    already_exists = redtick + ": Tag with name `{}` already exists."    
+    already_setup = redtick + ": This guild has already been setup for tags."
+    arg_needed = redtick + ": Missing argument. (`{}`)"
+    # B:
+    # C:
+    # D:
+    # E:
+    embed_error = redtick + ": Cannot respond to tag. Missing Permission. (`Embed Links`)"
+    error = Parser.generic_error
+    # F:
+    # G:
+    guild_not_setup = redtick + ": This guild does not have the tag system setup. Please run `{}tag setup` to setup the tags system."
+    guild_setup = greentick + ": Guild has been setup."
+    # H:
+    # I:
+    illegal_char = redtick + ": Illegal character in `{}`. (`{}`)"
     invalid_arg = Invalid.argument
     invalid_perms = Invalid.permissions
-    error = Parser.generic_error
-    illegal_char = redtick + ": Illegal character in `{}`. (`{}`)"
-    key_missing = redtick + ": Missing key for embed. Reverting to plaintext response."
-    already_setup = redtick + ": This guild has already been setup for tags."
-    guild_setup = greentick + ": Guild has been setup."
     invalid_perm_int = redtick + ": Permission integer too high. (Max: `{}`)"
-    tags_not_enabled = redtick + ": Tags are not enabled within this guild. Contact a global administrator if you believe this to be an error."
-    guild_not_setup = redtick + ": This guild does not have the tag system setup. Please run `{}tag setup` to setup the tags system."
-    arg_needed = redtick + ": Missing argument. (`{}`)"
-    already_exists = redtick + ": Tag with name `{}` already exists."
+    # J:
+    # K:
+    key_missing = redtick + ": Missing key for embed. Reverting to plaintext response."
+    # L:
+    # M:
+    # N:
+    nea = Parser.not_enough_arguments
+    not_exist = redtick + ": Tag `{}` doesn't exist."
+    # O:
+    # P:
+    # Q:
+    # R:
+    # S:
+    # T:
     tag_created = greentick + ": Created tag with name `{}`."
+    tag_list = "List of tags: ```\n{}```\nCommands with an `*` in front of the name cannot be ran by you."
     tag_removed = greentick + ": Removed tag with name `{}`. Data: ```json\n{}```"
     tag_updated = greentick + ": Updated tag with name `{}`."
-    embed_error = redtick + ": Cannot respond to tag. Missing Permission. (`Embed Links`)"
-    tag_list = "List of tags: ```\n{}```\nCommands with an `*` in front of the name cannot be ran by you."
-    not_exist = redtick + ": Tag `{}` doesn't exist."
+    tags_not_enabled = redtick + ": Tags are not enabled within this guild. Contact a global administrator if you believe this to be an error."
     too_long = Parser.message_too_long
+    # U:
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
 
 
 
 class VoicelessRoles:
+    # A:
+    # B:
+    # C:
+    # D:
+    # E:
+    # F:
+    # G:
+    # H:
+    # I:
+    # J:
+    # K:
+    # L:
+    # M:
+    # N:
+    # O:
+    # P:
+    # Q:
+    # R:
+    # S:
+    # T:
+    # U:
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
     invalid_perms = Invalid.permissions
     invalid_ID = Invalid.id
     error = Parser.generic_error
@@ -140,16 +321,104 @@ class VoicelessRoles:
 
 
 class Util:
+    # A:
+    # B:
+    # C:
+    cmd_list = "A list of all commands enabled within the guild: ```{list}``` For more information on a command, run `{pre}cmd info [Command]`"
+    # D:
+    # E:
     error = Parser.generic_error
+    # F:
+    # G:
+    # H:
+    # I:
     invalid_arg = Invalid.argument
-    nea = Parser.not_enough_arguments
+    # J:
+    # K:
+    # L:
     level = "{}'s permission level: `{}`"
+    # M:
+    # N:
+    nea = Parser.not_enough_arguments
+    # O:
+    # P:
     plugin_not_enabled = redtick + ": This guild does not have the `{}` plugin enabled and hence, cannot access it's help from within this server."
+    # Q:
+    # R:
+    # S:
+    # T:
+    # U:
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
+
 
 
 class MiscResponse:
+    # A:
+    # B:
+    # C:
+    # D:
+    # E:
+    # F:
+    # G:
+    # H:
+    # I:
+    # J:
+    # K:
+    # L:
+    # M:
+    # N:
+    # O:
+    # P:
+    # Q:
+    # R:
+    # S:
+    # T:
     test_confirmed = "Test confirmed:tm:"
-    ipie_boop = "<@230889918094639107>, well hello there."
+    # U:
+    # V:
+    # W:
+    # X:
+    # Y:
+    # Z:
+
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+################################### WARNING ###################################
+################### BEYOND THIS POINT IS DEATH AND SADNESS ####################
+################### IT CONTAINS A LOT OF UN-COMMENTED CODE ####################
+################# YOU HAVE BEEN WARNED: PROCEED AT OWN RISK! ##################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+
 
 
 
