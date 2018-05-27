@@ -122,19 +122,7 @@ class Utility(Plugin):
         },
         "info": {
             "cmd": {
-                "allow_DMs": True,
-                "bot_perms": 18432,
-                "user_perms": 0,
-                "default_level": perm_ints["else"],
-                "bypass_user_perms": True,
-                "syntax": [
-                    "{pre}info cmd",
-                    "[Command: Command]"
-                ],
-                "info": [
-                    "Returns help text and syntax for specified command. If",
-                    "no command specified it will return this help text."
-                ]
+                
             },
             "plugin": {
                 "allow_DMs": True,
@@ -150,6 +138,37 @@ class Utility(Plugin):
                     "Returns the description of the specified plugin. The",
                     "plugin does not need to be enabled in the server for",
                     "this command to work."
+                ]
+            }
+        },
+        "cmd": {
+            "info": {
+                "allow_DMs": True,
+                "bot_perms": 18432,
+                "user_perms": 0,
+                "default_level": perm_ints["else"],
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}cmd info",
+                    "[Command: Command]"
+                ],
+                "info": [
+                    "Returns help text and syntax for specified command. If",
+                    "no command specified it will return this help text."
+                ]
+            },
+            "list": {
+                "allow_DMs": True,
+                "bot_perms": 0,
+                "user_perms": 0,
+                "default_level": perm_ints["else"],
+                "bypass_user_perms": True,
+                "syntax": [
+                    "{pre}info list"
+                ],
+                "info": [
+                    "Displays a list of commands that the guild has enabled.",
+                    "(Tags are included in this list.)"
                 ]
             }
         }
@@ -245,11 +264,12 @@ class Utility(Plugin):
 
 
     @Plugin.command(
-        "cmd",
-        group="info",
+        "info",
+        group="cmd",
         aliases=[
             "help",
-            "command"
+            "syntax",
+            "description"
         ]
     )
     def command_info(self, event):
@@ -259,6 +279,7 @@ class Utility(Plugin):
             " disabled due to a bug within Disco. Please refrain from " +
             "attempting to use this command while the bug is being fixed.")
 
+
         # Check if we received multiple arguments
         if len(event.args) == 1:
             cmd = event.args[0]
@@ -267,7 +288,7 @@ class Utility(Plugin):
             cmd = event.args[0] + " " + event.args[1]
 
         else:
-            cmd = "info cmd"
+            cmd = "cmd info"
 
 
 
@@ -350,7 +371,7 @@ class Utility(Plugin):
 
             # Constants or config values
             "pre": Config.load()["bot"]["commands_prefix"],
-            "max_perm_int": max_perm_int,
+            "max_perm_int": max_permission_int,
             "perm_levels": perm_ints,
             "emoji": custom_emojis,
 
@@ -366,7 +387,7 @@ class Utility(Plugin):
             "bot_id": me.id,
 
             # Miscellanious information we may want to display
-            "cmd_total": len(plugin.cmds),  #TODO: Make this works
+            "cmd_total": len(plugin.commands),  #TODO: Make this works
             "plg_name": plugin.name
         }
 
@@ -482,3 +503,58 @@ class Utility(Plugin):
 
         # Respond with the embed
         return event.msg.reply(embed=embed)
+
+
+
+    @Plugin.command("list", group="cmd")
+    def command_list(self, event):
+
+        # Ensure guild
+        if event.guild:
+
+            # Load guild_list so we can check enabled guilds
+            guild_list = PluginConfig.load("guild_list.json")
+
+
+        cmds = []
+
+
+        # Cycle through plugins for command data
+        for plugin in self.bot.plugins:
+            plugin = self.bot.plugins[plugin]
+            print(plugin.name)
+
+            # Ensure guild
+            if event.guild:
+
+                # Check if plugin is enabled
+                if ((plugin.name in guild_list[str(event.guild.id)])
+                    or plugin.bypass_enabled):
+
+                    # Cycle through commands in the plugin
+                    for cmd in plugin.commands:
+                        print(cmd)
+                        # See if command has group
+                        if cmd.group:
+                            cmds.append("{} {}".format(
+                                cmd.group,
+                                cmd.name
+                            ))
+                        else:
+                            cmds.append(cmd.name)
+            else:
+
+                # Cycle through commands in the plugin
+                    for cmd in plugin.commands:
+                        print(cmd)
+                        # See if command has group
+                        if cmd.group:
+                            cmds.append("{} {}".format(
+                                cmd.group,
+                                cmd.name
+                            ))
+                        else:
+                            cmds.append(cmd.name)
+            print("====================")
+
+        return event.msg.reply(Util.cmd_list.format(list=", ".join(cmds), pre="~"))
