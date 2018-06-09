@@ -125,7 +125,7 @@ class GlobalAdmin:
     no_list_zero = redtick + ": I cannot list 0 {} to you."
     # O:
     # P:
-    plugin_list = "Enabled plugins for guild `{}`:\n```{}```"
+    plugin_list = "Enabled plugins for guild `{}`:\n```diff\n{}```"
     plugin_already_enabled = redtick + ": `{}`(guild) already has the `{}` plugin enabled."
     plugin_not_enabled = redtick + ": Cannot disable plugin `{}` that is not enabled in guild `{}`."
     # Q:
