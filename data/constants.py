@@ -99,3 +99,19 @@ discord_permission_values = {
     "move_members": 16777216,
     "use_voice_activity": 33554432
 }
+
+
+# Main data path for the JSON handler
+base_JSON_path = "data/"
+
+
+# The number of spaces we should be indenting with in the databases
+DB_indent_level = 2
+
+
+# The valid types of blacklists that are supported
+valid_blacklists = [
+    "guild",
+    "channel",
+    "user"
+]
