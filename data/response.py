@@ -90,6 +90,7 @@ class GlobalAdmin:
     # A:
     added_plugin = greentick + ": Added plugin `{}` to guild `{}`."
     # B:
+    blacklist_list = "The following entities are blacklisted: ```{}```"
     blacklisted = greentick + ": Added `{}` (entity) to the `{}` blacklist with reason `{}`"
     # C:
     cannot_be_enabled = redtick + ": Plugin `{}` cannot be enabled."

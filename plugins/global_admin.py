@@ -353,14 +353,11 @@ class GlobalAdministration(Plugin):
                 "syntax": [
                     "{pre}blacklist list",
                     "<Type: 'Guild' | 'Channel' | 'User'>",
-                    "[<Start: Integer>",
-                    "<Stop: Integer>]"
+                    "[<Stop: Integer> | <Start: Integer> <Stop: Integer>]"
                 ],
                 "info": [
                     "Displays a list of blacklisted entities within the given",
-                    "blacklist type. To display certain ones, `Start` and",
-                    "`Stop` must both be given otherwise the command will",
-                    "error."
+                    "blacklist type."
                 ]
             },
             "reset": {
@@ -956,4 +953,68 @@ class GlobalAdministration(Plugin):
 
         return event.msg.reply(
             embed=BlacklistInfoEmbed(data)
+        )
+
+
+
+    @Plugin.command("list", group="blacklist")
+    def blacklist_list(self, event):
+
+        # Ensure valid blacklist type given
+        if event.args[0].lower() not in valid_blacklists:
+            return event.msg.reply(
+                GlobalAdmin.invalid_blacklist.format(event.args[0].lower())
+            )
+
+        data = list(Blacklist.load()[event.args[0].lower()].keys())
+
+
+        # Convert arguments if given
+        try:
+            # End only
+            if len(event.args) == 2:
+                start = 0
+                end = int(event.args[1])
+            
+            # Both
+            elif len(event.args) == 3:
+                start = int(event.args[1])
+                end = int(event.args[2])
+
+            # No arguments given
+            else:
+                start = 0
+                end = len(data)
+
+        # Invalid integer given
+        except ValueError:
+            return event.msg.reply(GlobalAdmin.invalid_int)
+
+
+
+        # Ensure start is not greater than end
+        if (start - end) > 0:
+            return event.msg.reply(GlobalAdmin.error)
+
+
+        # Start == end (meaning no guilds to list)
+        elif (start - end) == 0:
+            return event.msg.reply(
+                GlobalAdmin.no_list_zero.format(
+                    "blacklist entries"
+                )
+            )
+
+
+        # Ensure user's "start" is lower than highest index
+        if start > (len(data) - 1):
+            return event.msg.reply(
+                GlobalAdmin.start_too_big.format(
+                    len(data) - 1
+                )
+            )
+
+
+        return event.msg.reply(
+            GlobalAdmin.blacklist_list.format(", ".join(data[start:end]))
         )
