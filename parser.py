@@ -88,6 +88,7 @@ class MessageParser(Plugin):
     commands_config = {
         "bot": {
             "reload": {
+                "DM_level": 4,
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
@@ -213,16 +214,6 @@ class MessageParser(Plugin):
                     return
 
 
-            #-----------------------------------------------------------------#
-            # Erroring if we don't have the absolute bare minimum permissions
-            #  for anything, (ie: sending messages)
-
-            # Ensure we have send message permissions, else, error
-            if not event.channel.get_permissions(
-                self.state.me
-            ).can(2048):
-                return
-
 
             #-----------------------------------------------------------------#
             # Parsing message if it has a command trigger
@@ -234,10 +225,13 @@ class MessageParser(Plugin):
 
             try:
                 cmd_config = plugin.commands_config[str(command.group)][command.name]
+
+                DM_level = cmd_config["DM_level"]
                 allow_DMs = cmd_config["allow_DMs"]
                 bot_perms = cmd_config["bot_perms"]
                 user_perms = cmd_config["user_perms"]
-                default_level = cmd_config["default_level"]
+                default_level = cmd_config["guild_level"]
+                bypass_user_perms = cmd_config["bypass_user_perms"]
             except:
                 return event.message.reply(Parser.generic_error)
 
@@ -270,6 +264,14 @@ class MessageParser(Plugin):
 
             # message in guild
             if guild:
+
+
+                # Ensure we have send message permissions, else, die silently
+                if not event.channel.get_permissions(
+                    self.state.me
+                ).can(2048):
+                    return
+
 
                 guild_list = PluginConfig.load("guild_list")
 
@@ -345,13 +347,11 @@ class MessageParser(Plugin):
                     # something went wrong, resort to default config
                     except KeyError:
                         cmd_level = default_level
-                        bypass_user_perms = cmd_config["bypass_user_perms"]
 
 
                 # Loading the default config file
                 else:
                     cmd_level = default_level
-                    bypass_user_perms = cmd_config["bypass_user_perms"]
 
 
                 #-------------------------------------------------------------#
@@ -410,49 +410,15 @@ class MessageParser(Plugin):
                     )
 
 
+
             # command ran in DMs
             elif allow_DMs:
 
-                # Ensure we aren't ignoring user_perms
-                if not bypass_user_perms:
-
-                    # Ensure user has full permissions
-                    if not event.message.channel.get_permissions(
-                        event.message.member
-                    ).can(user_perms):
-
-                        # Ensure there is a command group
-                        if command.group:
-                            cmd = command.group + " " + command.name
-                        else:
-                            cmd = command.name
-
-                        return event.msg.reply(
-                            Parser.bot_perm_missing.format(
-                                Config["bot"]["commands_prefix"],
-                                cmd
-                            )
-                        )
+                # Ensure user has proper permission level
+                if Perms.integer(event.message.author, False) < DM_level:
+                    return event.message.reply(Invalid.permissions)
 
 
-                # Ensure bot has all permissions needed
-                if not event.message.channel.get_permissions(
-                    self.state.me
-                ).can(bot_perms):
-
-                    # Ensure there is a command group
-                    if command.group:
-                        cmd = command.group + " " + command.name
-                    else:
-                       cmd = command.name
-
-
-                    return event.msg.reply(
-                        Parser.bot_perm_missing.format(
-                            Config["bot"]["commands_prefix"],
-                            cmd
-                        )
-                    )
 
             # not allowing direct message commands
             else:
@@ -495,53 +461,34 @@ class MessageParser(Plugin):
     @Plugin.command("reload", group="bot")
     def reload_plugins(self, event):
 
-        # argument checking
+        # Argument checking
         if not len(event.args):
             return event.msg.reply(GlobalAdmin.nea)
 
-        # get plugins
+        # Get plugins
         plugins = self.bot.plugins
         reloaded_plugins = []
         invalid_plugins = []
         didnt_reload = []
 
+        # filter through arguments given
+        for plugin in event.args:
+            plugin = plugins[plugin]
 
-        # reloading all plugins
-        if event.args[0].lower() == "all":
+            # ensure valid plugin
+            if plugin in plugins.keys():
 
-            # cycle through plugins reloading them
-            for plugin in plugins:
+                # check if we can't reload the plugin
+                if not plugins[plugin].can_reload:
+                    cannot_reload.append(plugin)
+                    continue
 
-                # Ensure plugin can be reloaded
-                if plugin.can_reload:
-                    reloaded_plugins.append(plugin)
-                    plugins[plugin].reload()
+                plugins[plugin].reload()
+                reloaded_plugins.append(plugin)
 
-                # Didn't reload because we can't
-                else:
-                    didnt_reload.append(plugin)
-
-
-        # reloading only certain plugins
-        else:
-
-            # filter through arguments given
-            for plugin in event.args:
-
-                # ensure valid plugin
-                if plugin in plugins.keys():
-
-                    # check if we can't reload the plugin
-                    if not plugins[plugin].can_reload:
-                        cannot_reload.append(plugin)
-                        continue
-
-                    plugins[plugin].reload()
-                    reloaded_plugins.append(plugin)
-
-                # add to invalid list
-                else:
-                    invalid_plugins.append(plugin)
+            # add to invalid list
+            else:
+                invalid_plugins.append(plugin)
 
 
         # Create response text
