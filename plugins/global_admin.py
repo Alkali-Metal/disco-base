@@ -3,8 +3,8 @@ Commands that allow global administrators to adminstrate the guilds and plugins
 of the bot.
 
 TODO:
-    !plugin <install|delete|add|remove>
-    !blacklist <list|reset>
+    !plugin <install|delete|purge-configs|add|remove>
+    !blacklist <reset>
 """
 # BOT IMPORTS:
 from data.types.discord.embeds import BlacklistInfoEmbed
@@ -106,6 +106,10 @@ class GlobalAdministration(Plugin):
         "`guild_delete`, `guild_available`, `guild_unavailable` to the admin",
         "logging webhook."
     ]
+    configs_used = {
+        "static": [],
+        "dynamic": []
+    }
     commands_config = {
         "plugin": {
             "enable": {
@@ -916,7 +920,6 @@ class GlobalAdministration(Plugin):
 
     @Plugin.command("info", group="blacklist")
     def blacklist_info(self, event):
-
 
         # Argument checking
         if len(event.args) < 2:
