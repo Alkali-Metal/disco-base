@@ -25,6 +25,25 @@ def TagEmbed(tag_data, variables):
 
 
 
+def BlacklistInfoEmbed(entity_data):
+    embed = MessageEmbed()
+    embed.title = "Blacklist entry information:"
+    embed.add_field(
+        name="Blacklisted by:",
+        value="`{e[0]}`".format(e=entity_data),
+        inline=True
+    )
+    embed.add_field(
+        name="Blacklisted on:",
+        value=entity_data[2],
+        inline=True
+    )
+    embed.add_field(
+        name="Reason:",
+        value="```{e[1]}```".format(e=entity_data)
+    )
+    return embed
+
 
 
 #=============================================================================#
