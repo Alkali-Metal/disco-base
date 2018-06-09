@@ -90,12 +90,15 @@ class GlobalAdmin:
     # A:
     added_plugin = greentick + ": Added plugin `{}` to guild `{}`."
     # B:
+    blacklisted = greentick + ": Added `{}` (entity) to the `{}` blacklist with reason `{}`"
     # C:
     cannot_be_enabled = redtick + ": Plugin `{}` cannot be enabled."
     cannot_leave = redtick + ": Cannot leave an admin level guild."
     # D:
     didnt_reload_plugins = "The following plugins cannot be reloaded: ```\n{}\n```"
     # E:
+    entity_already_blacklisted = redtick + ": `{}` (entity) already in the `{}` blacklist."
+    entity_not_blacklisted = redtick + ": `{}` (entity) not in the `{}` blacklist."
     error = Parser.generic_error
     # F:
     # G:
@@ -107,6 +110,7 @@ class GlobalAdmin:
     # H:
     # I:
     invalid_arg = Invalid.argument
+    invalid_blacklist = redtick + ": Invalid blacklist type. (`{}`)"
     invalid_int = Invalid.int
     invalid_plugin = Invalid.plugin + " (`{}`)"
     invalid_plugins = "The following plugins are invalid: ```\n{}\n```"
@@ -133,6 +137,7 @@ class GlobalAdmin:
     start_too_big = redtick + ": Initial index too high, start lower. (Max: `{}`)"
     # T:
     # U:
+    unblacklisted = greentick + ": `{}` (entity) removed from the `{}` blacklist."
     # V:
     # W:
     # X:
