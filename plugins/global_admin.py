@@ -1,13 +1,22 @@
 """
 Commands that allow global administrators to adminstrate the guilds and plugins
 of the bot.
+
+TODO:
+    !plugin <install|delete|add|remove>
+    !blacklist <list|reset>
 """
 # BOT IMPORTS:
+from data.types.discord.embeds import BlacklistInfoEmbed
 from data.types.bot.plugin_config import PluginConfig
+from data.types.bot.blacklist import Blacklist
 from data.types.bot.permissions import Perms
 from data.types.bot.config import Config
 from data.response import GlobalAdmin
-from data.constants import perm_ints
+from data.constants import (
+    valid_blacklists,
+    perm_ints
+)
 
 # DISCO IMPORTS:
 from disco.bot import Plugin
@@ -22,30 +31,37 @@ def convert_guild_self(arg, msg):
     if arg.lower() == "self":
 
         # Ensure a guild exists
-        if msg.guild:
-            guild_id = str(msg.guild.id)
+        if msg.guild != None:
+            return str(msg.guild.id)
 
         # Error if no guild present
         else:
-            return msg.reply(GlobalAdmin.arg.format(guild_id))
+            return 
     
     # Return what we were given
     return arg
 
 
 
-def filter_plugins(plugins, guild_plugins):
+def filter_plugins(plugins, guild_plugins, start, stop):
     response = ""
 
     # Cycle through all plugins in bot
-    for plugin in plugins:
+    for plugin in list(plugins.keys())[start:stop]:
+        plugin = plugins[plugin]
 
         # Ensure the plugin can actually be enabled
-        if plugin.can_be_enabled:
+        if plugin.can_be_enabled or plugin.bypass_enabled:
 
             # Check if the guild has it enabled
-            if plugin.name in guild_plugins:
+            if (plugin.name in guild_plugins):
                 response = "{}\n+ {} V{}".format(
+                    response,
+                    plugin.name,
+                    plugin.plugin_version
+                )
+            elif plugin.bypass_enabled:
+                response = "{}\n* {} V{}".format(
                     response,
                     plugin.name,
                     plugin.plugin_version
@@ -93,10 +109,11 @@ class GlobalAdministration(Plugin):
     commands_config = {
         "plugin": {
             "enable": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}plugin enable",
@@ -110,10 +127,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "disable": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}plugin disable",
@@ -127,10 +145,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "list": {
+                "DM_level": perm_ints["server_admin"],
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": perm_ints["server_admin"],
+                "guild_level": perm_ints["server_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}plugin list",
@@ -145,10 +164,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "install": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}plugin install",
@@ -161,10 +181,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "delete": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}plugin delete",
@@ -176,19 +197,21 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "add": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [],
                 "info": []
             },
             "remove": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [],
                 "info": []
@@ -196,10 +219,11 @@ class GlobalAdministration(Plugin):
         },
         "guild": {
             "enable": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild enable",
@@ -212,10 +236,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "disable": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild disable",
@@ -228,10 +253,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "list": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 2048,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild list",
@@ -247,10 +273,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "leave": {
+                "DM_level": perm_ints["server_mod"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["server_mod"],
+                "guild_level": perm_ints["server_mod"],
                 "bypass_user_perms": False,
                 "syntax": [
                     "{pre}guild leave",
@@ -265,10 +292,11 @@ class GlobalAdministration(Plugin):
         },
         "blacklist": {
             "add": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}blacklist add",
@@ -282,10 +310,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "remove": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}blacklist remove",
@@ -297,10 +326,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "info": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}blacklist info",
@@ -314,10 +344,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "list": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["global_admin"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}blacklist list",
@@ -333,10 +364,11 @@ class GlobalAdministration(Plugin):
                 ]
             },
             "reset": {
+                "DM_level": perm_ints["global_admin"],
                 "allow_DMs": True,
                 "bot_perms": 0,
                 "user_perms": 0,
-                "default_level": perm_ints["bot_creator"],
+                "guild_level": perm_ints["global_admin"],
                 "bypass_user_perms": True,
                 "syntax": [
                     "{pre}blacklist reset",
@@ -356,6 +388,18 @@ class GlobalAdministration(Plugin):
 # COMMANDS:
 
 
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------#
+# PLUGIN COMMANDS:
+
+
     @Plugin.command("enable", group="plugin")
     def plugin_enable(self, event):
 
@@ -364,7 +408,7 @@ class GlobalAdministration(Plugin):
         # Argument checking
         if len(event.args) < 2:
             return event.msg.reply(GlobalAdmin.nea)
-        guild_id = convert_guild_self(guild_id, event.msg)
+        guild_id = convert_guild_self(event.args[0], event.msg)
         plugin = event.args[1]
 
 
@@ -406,8 +450,9 @@ class GlobalAdministration(Plugin):
                     plugin.name
                 )
             )
-        
-    
+
+
+
 
 
     @Plugin.command("disable", group="plugin")
@@ -476,6 +521,8 @@ class GlobalAdministration(Plugin):
 
 
 
+
+
     @Plugin.command("list", group="plugin")
     def plugin_list(self, event):
 
@@ -488,7 +535,7 @@ class GlobalAdministration(Plugin):
 
         try:
             # Loading the guild's plugins
-            plugins = PluginConfig.load("guild_list")[guild_id]
+            enabled_plugins = PluginConfig.load("guild_list")[guild_id]
         except KeyError:
             return event.msg.reply(GlobalAdmin.invalid_arg.format(guild_id))
 
@@ -508,7 +555,7 @@ class GlobalAdministration(Plugin):
             # No arguments given
             else:
                 start = 0
-                end = len(plugins)
+                end = len(self.bot.plugins)
 
         # Invalid integer given
         except ValueError:
@@ -527,16 +574,21 @@ class GlobalAdministration(Plugin):
             )
 
         # Ensure user's "start" is lower than highest index
-        if start > (len(plugins) - 1):
+        if start > (len(self.bot.plugins) - 1):
             return event.msg.reply(
                 GlobalAdmin.start_too_big.format(
-                    len(plugins) - 1
+                    len(self.bot.plugins) - 1
                 )
             )
 
         response = GlobalAdmin.plugin_list.format(
             guild_id,
-            ", ".join(plugins[start:end])
+            filter_plugins(
+                self.bot.plugins,
+                enabled_plugins,
+                start,
+                end
+            )
         )
 
         # Ensure message length
@@ -546,6 +598,12 @@ class GlobalAdministration(Plugin):
         # Acknowledge
         return event.msg.reply(response)
 
+
+
+
+
+#-----------------------------------------------------------------------------#
+# GUILD COMMANDS:
 
 
     @Plugin.command("enable", group="guild", aliases=["whitelist"])
@@ -580,6 +638,8 @@ class GlobalAdministration(Plugin):
                 guild_id
             )
         )
+
+
 
 
 
@@ -618,6 +678,8 @@ class GlobalAdministration(Plugin):
 
 
 
+
+
     @Plugin.command("list", group="guild")
     def guild_list(self, event):
 
@@ -637,7 +699,7 @@ class GlobalAdministration(Plugin):
             # No arguments given
             else:
                 start = 0
-                end = len(guild_list)
+                end = len(self.state.guilds)
 
         # Invalid integer given
         except ValueError:
@@ -658,10 +720,10 @@ class GlobalAdministration(Plugin):
 
 
         # Ensure user's "start" is lower than highest index
-        if start > (len(guild_list) - 1):
+        if start > (len(self.state.guilds) - 1):
             return event.msg.reply(
                 GlobalAdmin.start_too_big.format(
-                    len(guild_list) - 1
+                    len(self.state.guilds) - 1
                 )
             )
 
@@ -687,7 +749,7 @@ class GlobalAdministration(Plugin):
 
 
         response = GlobalAdmin.guild_list.format(
-            "\n".join(list(guilds)[start:end])
+            "\n".join(guilds[start:end])
         )
 
 
@@ -697,6 +759,8 @@ class GlobalAdministration(Plugin):
 
         # Acknowledge
         event.msg.reply(response)
+
+
 
 
 
@@ -741,3 +805,155 @@ class GlobalAdministration(Plugin):
                 self.state.guilds[guild_id].leave()
             else:
                 return event.msg.reply(GlobalAdmin.cannot_leave)
+
+
+
+
+
+#-----------------------------------------------------------------------------#
+# BLACKLIST COMMANDS:
+
+
+    @Plugin.command("add", group="blacklist")
+    def blacklist_add(self, event):
+        
+        # Argument checking
+        if len(event.args) >= 3:
+            blacklist_type = event.args[0].lower()
+            entity = event.args[1].strip("<@!&#>")
+            reason = " ".join(event.args[2:])
+
+        # Not enough arguments error
+        elif len(event.args) < 2:
+            return event.msg.reply(GlobalAdmin.nea)
+
+        # Bare minimum arguments given
+        else:
+            blacklist_type = event.args[0]
+            entity = event.args[1].strip("<@!&#>")
+            reason = None
+
+
+        # Ensure valid blacklist type given
+        if blacklist_type not in valid_blacklists:
+            return event.msg.reply(
+                GlobalAdmin.invalid_blacklist.format(blacklist_type)
+            )
+
+
+        #load blacklist
+        data = Blacklist.load()
+
+
+        # Ensure entity isn't already in specified blacklist
+        if entity in data[blacklist_type]:
+            return event.msg.reply(
+                GlobalAdmin.entity_already_blacklisted.format(
+                    entity,
+                    blacklist_type
+                )
+            )
+
+
+        # Add entity to blacklist
+        getattr(Blacklist.Add, blacklist_type)(
+            entity,
+            event.msg.author.id,
+            reason
+        )
+
+        return event.msg.reply(
+            GlobalAdmin.blacklisted.format(
+                entity,
+                blacklist_type,
+                reason
+            )
+        )
+
+
+
+    @Plugin.command("remove", group="blacklist")
+    def blacklist_remove(self, event):
+
+        # Argument checking
+        if len(event.args) < 2:
+            return event.msg.reply(GlobalAdmin.nea)
+        blacklist_type = event.args[0]
+        entity = event.args[1].strip("<@!&#>")
+
+
+        # Ensure valid blacklist type given
+        if blacklist_type not in valid_blacklists:
+            return event.msg.reply(
+                GlobalAdmin.invalid_blacklist.format(blacklist_type)
+            )
+
+
+        #load blacklist
+        data = Blacklist.load()
+
+
+        # Ensure entity isn't already in specified blacklist
+        if entity not in data[blacklist_type]:
+            return event.msg.reply(
+                GlobalAdmin.entity_not_blacklisted.format(
+                    entity,
+                    blacklist_type
+                )
+            )
+
+
+        # Remove entity from blacklist
+        getattr(Blacklist.Remove, blacklist_type)(
+            entity
+        )
+
+        return event.msg.reply(
+            GlobalAdmin.unblacklisted.format(
+                entity,
+                blacklist_type
+            )
+        )
+
+
+
+    @Plugin.command("info", group="blacklist")
+    def blacklist_info(self, event):
+
+
+        # Argument checking
+        if len(event.args) < 2:
+            return event.msg.reply(GlobalAdmin.nea)
+
+
+        # Insantiate variables
+        blacklist_type = event.args[0].lower()
+        entity = event.args[1]
+
+
+        # Ensure valid blacklist type given
+        if blacklist_type not in valid_blacklists:
+            return event.msg.reply(
+                GlobalAdmin.invalid_blacklist.format(blacklist_type)
+            )
+
+
+        # Load blacklist
+        data = Blacklist.load()
+
+        # Ensure entity is blacklisted
+        if entity not in data[blacklist_type]:
+            return event.msg.reply(
+                GlobalAdmin.entity_not_blacklisted.format(
+                    entity,
+                    blacklist_type
+                )
+            )
+
+
+        # Get entity data
+        data = Blacklist.get(blacklist_type, entity)
+
+        return event.msg.reply(
+            embed=BlacklistInfoEmbed(data)
+        )
