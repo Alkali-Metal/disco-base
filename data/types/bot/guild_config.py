@@ -1,93 +1,69 @@
-from data.types.bot.plugin_config import PluginConfig
+# BOT IMPORTS:
+from data.constants import (
+    base_JSON_path
+)
+from util.json_handler import JSON
 
+# DISCO IMPORTS:
+
+# MISC IMPORTS:
 from os import listdir
 
-import json
+
+#=============================================================================#
+# VARIABLE INITIALIZATION:
+config_dir = "guilds/"
+default_guild = ".static-json/default_guild_template.json"
 
 
-guild_config_path = "data/guilds/"
-default_guild_config = "default_guild_template.json"
+#=============================================================================#
+# HANDLER EXTENSION:
 
 
 class GuildConfig:
 
 
-    def load(guild_id, force_guild=False, no_guild_default=True):
-        guild_id = str(guild_id)
 
-        #check for filetype
-        if not guild_id.endswith(".json"):
-            guild_config = str(guild_id) + ".json"
+    def load(name):
+        """
+        Loads a JSON file from the data/plugin-config directory
+        """
 
-        data = None
+        # Ensure filetype
+        if not str(name).endswith(".json"):
+            name = str(name) + ".json"
 
-        #check if it exists
-        if GuildConfig.exists(guild_id):
-            with open(guild_config_path + guild_config, 'r') as file:
-                data = json.load(file)
-        
-        #otherwise load defaults
-        else:
-
-            #see if we are forcing a guild config
-            if force_guild:
-                data = GuildConfig.create(guild_id, give_back=True)
-            elif no_guild_default:
-                with open(guild_config_path + "default.json", 'r') as file:
-                    data = json.load(file)
-        return data
+        return JSON.load(config_dir + name)
 
 
 
-    def write(guild_id, data):
-        guild_id = str(guild_id)
+    def write(name, data):
+        """
+        Writes to a JSON file from the data/plugin-config directory
+        """
 
-        #check for filetype
-        if not guild_id.endswith(".json"):
-            guild_config = str(guild_id) + ".json"
-        
-        #check if the config exists
-        if GuildConfig.exists(guild_id):
-            with open(guild_config_path + guild_config, 'w') as file:
-                file.write(json.dumps(data, indent=2))
+        # Ensure filetype
+        if not name.endswith(".json"):
+            name = name + ".json"
 
-
-
-    def create(guild_id, give_back=False):
-
-        #make sure it doesn't exist
-        if not GuildConfig.exists(guild_id):
-            with open(guild_config_path + str(guild_id) + ".json", 'w') as data:
-                data = PluginConfig.load(default_guild_config)
-            GuildConfig.write(guild_id, data)
-
-            #send back the data if requested
-            if give_back:
-                return data
+        return JSON.write(config_dir + name, data)
 
 
 
-    def reset(guild_id):
-        guild_id = str(guild_id)
+    def exists(name):
+        """
+        Checks if a plugin configuration exists, returns a boolean
+        """
 
-        #make sure the guild exists
-        if GuildConfig.exists(guild_id):
-            data = GuildConfig.load(guild_id)
-            data = {}
-            GuildConfig.write(data)
+        files = []
 
+        # Cycle through files in directory
+        for file in listdir(base_JSON_path + config_dir):
+            if file.endswith(".json"):
+                files.append(file)
 
+        # Ensure filetype
+        if not name.endswith(".json"):
+            name = name + ".json"
 
-    def exists(guild_id):
-        file_list = listdir(guild_config_path)
-        guild_id = str(guild_id)
-
-        #check for filetype
-        if not guild_id.endswith(".json"):
-            guild_config = str(guild_id) + ".json"
-        
-        #guild file in the list
-        if guild_config in file_list:
-            return True
-        else:
-            return False
+        return (name in files)

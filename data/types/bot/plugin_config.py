@@ -1,45 +1,68 @@
-import json
+# BOT IMPORTS:
+from data.constants import (
+    base_JSON_path
+)
+from util.json_handler import JSON
 
-from data.types.bot.exceptions import PluginError
+# DISCO IMPORTS:
 
-
+# MISC IMPORTS:
 from os import listdir
 
 
-base_path = "data/"
+#=============================================================================#
+# VARIABLE INITIALIZATION:
+config_dir = "plugin-configs/"
+
+
+#=============================================================================#
+# HANDLER EXTENSION:
 
 
 class PluginConfig:
+
+
+
     def load(name):
+        """
+        Loads a JSON file from the data/plugin-config directory
+        """
+
+        # Ensure filetype
         if not name.endswith(".json"):
             name = name + ".json"
-        try:
-            with open(base_path + name, 'r') as file:
-                data = json.load(file)
-            return data
-        except:
-            PluginError("Plugin config cannot be found.")
+
+        return JSON.load(config_dir + name)
 
 
 
     def write(name, data):
+        """
+        Writes to a JSON file from the data/plugin-config directory
+        """
+
+        # Ensure filetype
         if not name.endswith(".json"):
             name = name + ".json"
-        with open(base_path + name, 'w') as file:
-            file.write(json.dumps(data, indent=2))
-    
-    
-    
+
+        return JSON.write(config_dir + name, data)
+
+
+
     def exists(name):
+        """
+        Checks if a plugin configuration exists, returns a boolean
+        """
+
         files = []
-        for file in listdir(base_path):
-            if file.endswith(format):
+
+        # Cycle through files in directory
+        for file in listdir(base_JSON_path + config_dir):
+            if file.endswith(".json"):
                 files.append(file)
 
+        # Ensure filetype
         if not name.endswith(".json"):
             name = name + ".json"
 
-        if name in files:
-            return True
-        else:
-            return False
+        return (name in files)
